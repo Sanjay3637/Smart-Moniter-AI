@@ -2,7 +2,6 @@
 
 ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutting-edge AI-based algorithms for online exams. This comprehensive system is designed to ensure the integrity and security of online examinations. The project leverages technologies such as React.js, Redux, Node.js, and TensorFlow.js to offer a feature-rich exam proctoring solution.
 
-![ProctoAI-MERN](readme-images/proctoai-mern.jpg)
 
 ## Table of Contents
 
@@ -23,162 +22,122 @@ ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutti
   - [Unified Portal](#unified-portal)
 - [Project Screenshots](#project-screenshots)
   - [Login Page](#login-page)
-  - [Teacher Dashboard](#teacher-dashboard)
-  - [Exam Page](#exam-page)
-  - [Cheat Log Dashboard](#cheat-log-dashboard)
-- [How to Run](#how-to-run)
-- [Contributors](#contributors)
-- [License](#license)
+  # ProctoAI-MERN (Automated Exam Proctoring)
 
-## Tech Stack
+  An online exam proctoring system implemented with the MERN stack and client-side AI (TensorFlow.js). This README reflects the current codebase layout and how to run and extend it.
 
-ProctoAI-MERN utilizes a range of technologies to provide its comprehensive functionality. The key technologies and dependencies used in this project include:
+  ## Repository layout
 
-### Backend
+  - `backend/` — Express server, routes, controllers, models, and utils.
+  - `frontend/` — React application (Material-UI, Redux Toolkit) including proctoring UI and TensorFlow.js integrations.
 
-- **Node.js:** A JavaScript runtime for server-side development.
-- **Express:** A minimal and flexible Node.js web application framework.
-- **MongoDB:** A NoSQL database for storing user data.
-- **Mongoose:** An elegant MongoDB object modeling tool.
-- **JSON Web Tokens (JWT):** Used for secure authentication and authorization.
-- **bcryptjs:** A library for securely hashing passwords.
-- **Express-Async-Handler:** Middleware to handle exceptions in asynchronous route handlers.
+  ## Quick summary of how the app works
 
-### Frontend
+  - Backend runs on Express and connects to MongoDB (`backend/config/db.js`).
+  - JWT tokens are issued on login and stored in an httpOnly cookie (see `backend/controllers/userController.js` and `backend/utils/generateToken.js`).
+  - Frontend uses React, Redux Toolkit, and TensorFlow.js models for client-side proctoring (object/face detection). Detected cheating events are sent to the backend to be logged.
 
-- **React:** A JavaScript library for building user interfaces.
-- **Redux Toolkit:** A library for state management in React applications.
-- **TensorFlow.js:** An open-source machine learning framework for web-based applications.
-- **Material-UI:** A popular React UI framework.
-- **React-Router:** A routing library for React applications.
-- **React-Toastify:** Used for displaying notifications.
-- **React-Webcam:** A React component for capturing video from the user's webcam.
-- **Yup:** A JavaScript schema builder for value parsing and validation.
-- **Formik:** A library for building forms in React with form validation.
-- **SweetAlert:** A JavaScript library for creating beautiful and responsive alert messages.
+  ## Important code-based facts (extracted from the current code)
 
-## Current Functionality
+  - Root `package.json` scripts:
+    - `server`: starts backend via `nodemon backend/server.js`.
+    - `client`: starts frontend with `npm start --prefix frontend`.
+    - `dev`: runs server and client concurrently.
+  - In `backend/server.js` the app mounts routes:
+    - `app.use('/api/users', userRoutes)`
+    - `app.use('/api/users', examRoutes)` (note: some exam routes are mounted under `/api/users` in this code)
+    - `app.use('/api/results', resultRoutes)`
+    - `app.use('/api/exams', submitExamRoutes)`
+  - Key user endpoints (implemented in `backend/controllers/userController.js`): register, login/auth, logout, get profile, update profile. Login issues a cookie named `jwt`.
+  - Key exam endpoints (examples in `backend/controllers/examController.js`): `GET /api/exams`, `POST /api/exams`, `DELETE /api/exams/:id`.
+  - `Exam` model fields: `examName`, `totalQuestions`, `duration`, `liveDate`, `deadDate`, and `examId` (UUID).
+  - Frontend `package.json` includes TensorFlow-related dependencies: `@tensorflow-models/coco-ssd`, `@tensorflow-models/face-detection`, `@tensorflow/tfjs`.
 
-### User Authentication and Role Management
+  ## Environment variables
 
-- Students and teachers can log in with separate roles and permissions.
-- Secure authentication and authorization for user accounts.
+  Create a `.env` for the backend with at least the following variables:
 
-### Teacher Capabilities
+  ```env
+  MONGO_URI=your_mongo_connection_string
+  JWT_SECRET=your_jwt_secret
+  PORT=5000
+  FRONTEND_URL=http://localhost:3000
+  NODE_ENV=development
+  ```
 
-- Teachers can create exams and define questions.
-- Exam management for teachers, including question creation and configuration.
+  ## Run locally (development)
 
-### Student Functionality
+  1) Install dependencies
 
-- Students can view available exams and participate in them.
-- The test page displays questions and a timer with an auto-submit feature.
+  ```powershell
+  # from repo root
+  npm install
+  cd frontend
+  npm install
+  cd ../backend
+  npm install
+  ```
 
-### AI Exam Proctoring
+  2) Start backend and frontend (either separately or with root `dev`):
 
-- Real-time AI proctoring of students during exams.
-- AI checks for cheating behaviors, such as mobile phone detection, multiple faces detection, and absence of detected faces.
-- Cheating incidents are logged and viewable by teachers in their dashboard.
+  ```powershell
+  # from backend
+  npm run server
 
-## Future Scope
+  # from frontend
+  npm start
 
-### Candidate Verification
+  # or from repo root (runs both concurrently)
+  npm run dev
+  ```
 
-- Real-time candidate identity verification through image capture and matching with registered candidates.
+  The frontend proxy (development) points to `http://localhost:5000/` so API calls are proxied to the Express server.
 
-### Voice Recognition
+  ## Build for production
 
-- Utilization of voice recognition technology to monitor and identify voice anomalies during online exams, identifying potential malpractice.
+  1. Build the frontend:
 
-### Secure Exam Environment
+  ```powershell
+  cd frontend
+  npm run build
+  ```
 
-- Preventing candidates from opening or accessing unauthorized applications on their desktop or mobile devices during the online exam.
+  2. Ensure the build output (`frontend/dist` or `frontend/build` depending on your build setup) is available to the backend. The server tries to serve static files when `NODE_ENV === 'production'`.
 
-### Unified Portal
+  3. Start the backend in production mode (with `NODE_ENV=production`) and it will serve the frontend static files.
 
-- Creation of a unified portal for users to log in, access question papers, open a chat window for communication with the examiner, and upload answer sheets via an integrated scanner within the portal.
+  ## API snapshot
 
-## Project Screenshots
+  - Authentication and user management (`backend/controllers/userController.js`):
+    - `POST /api/users` — register
+    - `POST /api/users/auth` — login (sets JWT cookie)
+    - `POST /api/users/logout` — logout (clears cookie)
+    - `GET /api/users/profile` — protected
+    - `PUT /api/users/profile` — protected
 
-### Login Page
+  - Exams (`backend/controllers/examController.js`):
+    - `GET /api/exams` — public list
+    - `POST /api/exams` — create (teacher role expected)
+    - `DELETE /api/exams/:id` — delete (teacher role expected)
 
-- #### Student
+  For full details, inspect `backend/routes` and `backend/controllers`.
 
-![Login Page](readme-images/login-page-student.jpg)
+  ## Notes & gotchas observed in code
 
-- #### Teacher
+  - Some exam-related routes are mounted under `/api/users` in `server.js` — double-check route prefixes if you expect them under `/api/exams`.
+  - CORS is configured with `origin: process.env.FRONTEND_URL` and `credentials: true` — ensure the frontend sends requests with credentials included when required.
 
-![Login Page](readme-images/login-page-teacher.jpg)
+  ## Recommendations / next tasks
 
-### Dashboard
+  - Add `.env.example` to the repo to document required environment variables.
+  - Add a short Dockerfile and `docker-compose.yml` to make local development reproducible.
+  - Add minimal API tests (e.g., using Jest + Supertest) for auth and exam CRUD.
 
-- #### Student
+  ---
 
-![Student Dashboard](readme-images/student-dashboard.jpg)
+  If you want, I can also:
 
-- #### Teacher
+  - add a `.env.example` file,
+  - create a small `docs/API.md` listing all endpoints and request/response examples,
+  - or open a PR with these README changes committed (already applied).
 
-![Teacher Dashboard](readme-images/teacher-dashboard.jpg)
-
-### Creating Exam Feature
-
-- #### Create Exam
-
-![Create Exam](readme-images/create-exam.jpg)
-
-- #### Success
-
-![Create Exam](readme-images/create-exam-success.jpg)
-
-- #### Create Questions
-
-![Create Questions](readme-images/create-question.jpg)
-
-### Exam Page
-
-![Exam Page](readme-images/exam-page.png)
-
-### Cheating Detection During Exam
-
-- Webcam capture is hidden due to privacy reasons, with a black box covering the video feed.
-
-#### Cell Phone Detection
-
-![Cell Phone Detection](readme-images/cell-phone-detection.png)
-
-#### Prohibited Object Detection
-
-![Prohibited Object Detection](readme-images/prohibited-object-detection.jpg)
-
-#### Face Not Visible Detection
-
-![Cell Phone Detection](readme-images/face-not-visible-detection.jpg)
-
-### Test Page
-
-#### Start
-
-![Test Start](readme-images/test-start.jpg)
-
-#### Submitted
-
-![Test Submitted](readme-images/test-submitted.jpg)
-
-### Cheat Log Dashboard
-
-![Cheat Log Dashboard](readme-images/cheat-log-dashboard.png)
-
-More features and improvements are in development and will be included in future updates.
-
-## How to Run
-
-To run this project locally, follow these steps:
-
-1. Clone this repository.
-2. Install the required dependencies in both the frontend and backend folders.
-3. Start the server using `npm start` in the backend folder.
-4. Start the React app using `npm start` in the frontend folder.
-
-## Contributors
-
-- [Mohd Zubair](https://github.com/mohdzubairshafi)
