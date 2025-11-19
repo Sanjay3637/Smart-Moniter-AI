@@ -63,7 +63,12 @@ export const getStudentResults = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
   
   const results = await Result.find({ student: studentId })
-    .populate('exam', 'examName totalQuestions duration')
+    // populate exam and its category name so frontend can display category
+    .populate({
+      path: 'exam',
+      select: 'examName totalQuestions duration category',
+      populate: { path: 'category', select: 'name' },
+    })
     .sort({ submittedAt: -1 });
 
   // Transform results to include flat exam fields for easier frontend access
@@ -75,6 +80,7 @@ export const getStudentResults = asyncHandler(async (req, res) => {
       examName: resultObj.exam?.examName || 'Unnamed Exam',
       examDuration: resultObj.exam?.duration,
       examTotalQuestions: resultObj.exam?.totalQuestions,
+      examCategoryName: resultObj.exam?.category?.name || 'Uncategorized',
     };
   });
 
@@ -92,7 +98,11 @@ export const getExamResult = asyncHandler(async (req, res) => {
     student: studentId, 
     exam: examId 
   })
-  .populate('exam', 'examName totalQuestions duration')
+  .populate({
+    path: 'exam',
+    select: 'examName totalQuestions duration category',
+    populate: { path: 'category', select: 'name' },
+  })
   .populate('answers.questionId', 'questionText options correctOption');
 
   if (!result) {

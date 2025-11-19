@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   TextField,
   Button,
@@ -15,7 +13,7 @@ import {
 } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
-import { useGetExamsQuery } from 'src/slices/examApiSlice';
+import { useGetExamsQuery, useGetCategoriesQuery } from 'src/slices/examApiSlice';
 import {
   useCreateAssignmentMutation,
   useGetTeacherAssignmentsQuery,
@@ -26,6 +24,7 @@ import { IconTrash, IconSend, IconUser, IconCalendar } from '@tabler/icons-react
 
 const AssignExamPage = () => {
   const { data: exams, isLoading: examsLoading } = useGetExamsQuery();
+  const { data: categories } = useGetCategoriesQuery();
   const { data: assignments, refetch } = useGetTeacherAssignmentsQuery();
   const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
   const [deleteAssignment] = useDeleteAssignmentMutation();
@@ -33,9 +32,12 @@ const AssignExamPage = () => {
   const [formData, setFormData] = useState({
     examId: '',
     examName: '',
-    studentEmail: '',
+    studentRoll: '',
     dueDate: '',
   });
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [filteredExams, setFilteredExams] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,6 +49,14 @@ const AssignExamPage = () => {
         examId: value,
         examName: selectedExam?.examName || '',
       });
+    } else if (name === 'categoryId') {
+      setSelectedCategoryId(value);
+      // reset exam selection when category changes
+      setFormData({
+        ...formData,
+        examId: '',
+        examName: '',
+      });
     } else {
       setFormData({
         ...formData,
@@ -55,10 +65,31 @@ const AssignExamPage = () => {
     }
   };
 
+  // Initialize default category if available
+  React.useEffect(() => {
+    if (categories?.length > 0 && !selectedCategoryId) {
+      setSelectedCategoryId(categories[0]._id);
+    }
+  }, [categories, selectedCategoryId]);
+
+  // Filter exams by selected category and ensure selected exam stays valid
+  React.useEffect(() => {
+    if (exams) {
+      const next = selectedCategoryId
+        ? exams.filter((ex) => ex.category?._id === selectedCategoryId)
+        : [...exams];
+      setFilteredExams(next);
+
+      if (formData.examId && !next.some((ex) => ex._id === formData.examId)) {
+        setFormData((prev) => ({ ...prev, examId: '', examName: '' }));
+      }
+    }
+  }, [exams, selectedCategoryId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.examId || !formData.studentEmail || !formData.dueDate) {
+    if (!formData.examId || !formData.studentRoll || !formData.dueDate) {
       toast.error('Please fill all fields');
       return;
     }
@@ -69,7 +100,7 @@ const AssignExamPage = () => {
       setFormData({
         examId: '',
         examName: '',
-        studentEmail: '',
+        studentRoll: '',
         dueDate: '',
       });
       refetch();
@@ -125,28 +156,45 @@ const AssignExamPage = () => {
                   <TextField
                     select
                     fullWidth
-                    label="Select Exam"
-                    name="examId"
-                    value={formData.examId}
+                    label="Select Category"
+                    name="categoryId"
+                    value={selectedCategoryId}
                     onChange={handleChange}
-                    required
-                    disabled={examsLoading}
                   >
-                    {exams?.map((exam) => (
-                      <MenuItem key={exam._id} value={exam._id}>
-                        {exam.examName}
+                    {categories?.map((cat) => (
+                      <MenuItem key={cat._id} value={cat._id}>
+                        {cat.name}
                       </MenuItem>
                     ))}
                   </TextField>
 
                   <TextField
+                    select
                     fullWidth
-                    label="Student Email"
-                    name="studentEmail"
-                    type="email"
-                    value={formData.studentEmail}
+                    label="Select Exam"
+                    name="examId"
+                    value={formData.examId}
                     onChange={handleChange}
-                    placeholder="student@example.com"
+                    required
+                    disabled={examsLoading || filteredExams.length === 0}
+                  >
+                    {filteredExams?.map((exam) => (
+                      <MenuItem key={exam._id} value={exam._id}>
+                        {exam.examName}
+                      </MenuItem>
+                    ))}
+                    {filteredExams?.length === 0 && (
+                      <MenuItem disabled>No exams available for this category</MenuItem>
+                    )}
+                  </TextField>
+
+                  <TextField
+                    fullWidth
+                    label="Student Roll Number"
+                    name="studentRoll"
+                    value={formData.studentRoll}
+                    onChange={handleChange}
+                    placeholder="e.g. 2021CS101"
                     required
                   />
 
@@ -217,7 +265,7 @@ const AssignExamPage = () => {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                               <Typography variant="body2" color="textSecondary">
-                                {assignment.studentEmail}
+                                {assignment.studentRoll || assignment.studentEmail}
                               </Typography>
                             </Grid>
                             <Grid item xs={12}>

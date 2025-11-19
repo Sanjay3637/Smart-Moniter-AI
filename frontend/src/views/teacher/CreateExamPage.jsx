@@ -4,9 +4,11 @@ import PageContainer from 'src/components/container/PageContainer';
 import ExamForm from './components/ExamForm';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useDispatch, useSelector } from 'react-redux';
+import { useGetCategoriesQuery, useCreateCategoryMutation, useCreateExamMutation } from '../../slices/examApiSlice.js';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useCreateExamMutation } from '../../slices/examApiSlice.js';
+import { TextField, Button } from '@mui/material';
+import { useState } from 'react';
 
 const examValidationSchema = yup.object({
   examName: yup.string().required('Exam Name is required'),
@@ -27,7 +29,9 @@ const examValidationSchema = yup.object({
 });
 
 const CreateExamPage = () => {
-  const { userInfo } = useSelector((state) => state.auth);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const categoryParam = params.get('category');
 
   const initialExamValues = {
     examName: '',
@@ -35,6 +39,7 @@ const CreateExamPage = () => {
     duration: '',
     liveDate: '',
     deadDate: '',
+    category: categoryParam && categoryParam !== 'uncategorized' ? categoryParam : '',
   };
 
   const formik = useFormik({
@@ -45,12 +50,26 @@ const CreateExamPage = () => {
     },
   });
 
-  const dispatch = useDispatch();
-  const [createExam, { isLoading }] = useCreateExamMutation();
+  const [createExam] = useCreateExamMutation();
+  const { data: categories, refetch: refetchCategories } = useGetCategoriesQuery();
+  const [createCategory] = useCreateCategoryMutation();
+  const [newCategory, setNewCategory] = useState('');
+
+  const handleCreateCategory = async () => {
+    if (!newCategory.trim()) return toast.error('Category name required');
+    try {
+      await createCategory({ name: newCategory }).unwrap();
+      toast.success('Category created');
+      setNewCategory('');
+      refetchCategories();
+    } catch (err) {
+      toast.error(err?.data?.message || err.message || err.error || 'Failed to create category');
+    }
+  };
 
   const handleSubmit = async (values) => {
     try {
-      const res = await createExam(values).unwrap();
+      await createExam(values).unwrap();
       toast.success('Exam Created successfully');
       formik.resetForm();
     } catch (err) {
@@ -86,10 +105,21 @@ const CreateExamPage = () => {
             justifyContent="center"
             alignItems="center"
           >
-            <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '500px' }}>
+            <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '600px' }}>
+              <Box mb={2}>
+                <Typography variant="subtitle1" mb={1}>
+                  Create new category
+                </Typography>
+                <Box display="flex" gap={1} mb={2} alignItems="center">
+                  <TextField size="small" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="e.g. End Semester" fullWidth />
+                  <Button variant="contained" onClick={handleCreateCategory}>Create</Button>
+                </Box>
+              </Box>
+
               <ExamForm
                 formik={formik}
                 onSubmit={handleSubmit}
+                categories={categories}
                 title={
                   <Typography variant="h3" textAlign="center" color="textPrimary" mb={1}>
                     Create Exam

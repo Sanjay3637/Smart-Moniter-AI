@@ -10,7 +10,7 @@ import {
   MenuItem,
 } from '@mui/material';
 
-const CreateExam = ({ formik, title, subtitle, subtext }) => {
+const CreateExam = ({ formik, title, subtitle, subtext, categories = [] }) => {
   const { values, errors, touched, handleBlur, handleChange, handleSubmit } = formik;
 
   return (
@@ -125,6 +125,34 @@ const CreateExam = ({ formik, title, subtitle, subtext }) => {
             shrink: true,
           }}
         />
+
+        {/* Category selection (optional) */}
+        {Array.isArray(subtext) ? null : null}
+        {/** categories prop passed via formik values or external prop */}
+        {/** The parent component should pass available categories via formik initialValues or additional prop */}
+
+        {/** Render category select if categories prop provided via formik.values.categories (handled in CreateExamPage) */}
+        {/** Render category select if categories provided */}
+        {Array.isArray(categories) && categories.length > 0 ? (
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="category-label">Category</InputLabel>
+            <Select
+              labelId="category-label"
+              id="category"
+              name="category"
+              value={values.category}
+              label="Category"
+              onChange={handleChange}
+            >
+              {/* options are expected to be objects with _id and name */}
+              {categories.map((c) => (
+                <MenuItem key={c._id} value={c._id}>
+                  {c.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ) : null}
 
         <Button color="primary" variant="contained" size="large" fullWidth onClick={handleSubmit}>
           Create Exam

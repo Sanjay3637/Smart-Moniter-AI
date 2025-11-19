@@ -5,7 +5,8 @@ import Exam from "./../models/examModel.js";
 // @route GET /api/exams
 // @access Public
 const getExams = asyncHandler(async (req, res) => {
-  const exams = await Exam.find();
+  // populate category name if exists
+  const exams = await Exam.find().populate('category', 'name');
   res.status(200).json(exams);
 });
 
@@ -13,7 +14,7 @@ const getExams = asyncHandler(async (req, res) => {
 // @route POST /api/exams
 // @access Private (teacher)
 const createExam = asyncHandler(async (req, res) => {
-  const { examName, totalQuestions, duration, liveDate, deadDate } = req.body;
+  const { examName, totalQuestions, duration, liveDate, deadDate, category } = req.body;
 
   const exam = new Exam({
     examName,
@@ -21,6 +22,7 @@ const createExam = asyncHandler(async (req, res) => {
     duration,
     liveDate,
     deadDate,
+    category: category || undefined,
   });
 
   const createdExam = await exam.save();

@@ -32,11 +32,16 @@ export const cheatingLogApiSlice = apiSlice.injectEndpoints({
     }),
     // Delete a cheating log entry by id (teacher only)
     deleteCheatingLog: builder.mutation({
-      query: (id) => ({
+      query: ({ id }) => ({
         url: `${EXAMS_URL}/cheatingLogs/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'CheatingLogs', id }],
+      invalidatesTags: (result, error, arg) => {
+        const tags = [];
+        if (arg?.id) tags.push({ type: 'CheatingLogs', id: arg.id });
+        if (arg?.examId) tags.push({ type: 'CheatingLogs', id: arg.examId });
+        return tags.length ? tags : ['CheatingLogs'];
+      },
     }),
   }),
 });

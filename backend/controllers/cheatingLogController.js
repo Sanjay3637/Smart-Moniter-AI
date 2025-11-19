@@ -58,14 +58,12 @@ const deleteCheatingLog = asyncHandler(async (req, res) => {
     throw new Error('Invalid cheating log id');
   }
 
-  const log = await CheatingLog.findById(id);
+  const deleted = await CheatingLog.findByIdAndDelete(id);
 
-  if (!log) {
+  if (!deleted) {
     res.status(404);
     throw new Error('Cheating log not found');
   }
-
-  await log.remove();
 
   res.status(200).json({ message: 'Cheating log deleted', id });
 });

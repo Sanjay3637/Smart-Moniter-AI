@@ -16,8 +16,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
-  Tooltip,
+  
 } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import {
@@ -26,16 +25,14 @@ import {
   IconX,
   IconAlertCircle,
   IconRefresh,
-  IconEye,
 } from '@tabler/icons-react';
 import { useGetResults } from 'src/slices/resultsApiSlice';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+// no navigation needed on student results list
 
 const MyResultsPage = () => {
   const { results = [], isLoading, error, refetch } = useGetResults();
   const [localError, setLocalError] = useState(null);
-  const navigate = useNavigate();
 
   // Debug log to check the API response
   useEffect(() => {
@@ -146,11 +143,11 @@ const MyResultsPage = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Exam</TableCell>
-                      <TableCell align="center">Status</TableCell>
-                      <TableCell align="center">Score</TableCell>
-                      <TableCell align="center">Date</TableCell>
-                      <TableCell align="right">Actions</TableCell>
+                <TableCell>Exam</TableCell>
+                <TableCell align="center">Category</TableCell>
+                <TableCell align="center">Status</TableCell>
+                <TableCell align="center">Score</TableCell>
+                <TableCell align="center">Date</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -183,6 +180,11 @@ const MyResultsPage = () => {
                               </Typography>
                               <Typography variant="body2" color="textSecondary">
                                 Score: {result.percentage?.toFixed(0) || 0}%
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Typography variant="body2" color="textSecondary">
+                                {result.exam?.category?.name || result.examCategoryName || result.category?.name || 'Uncategorized'}
                               </Typography>
                             </TableCell>
                         <TableCell align="center">
@@ -218,17 +220,7 @@ const MyResultsPage = () => {
                                 : 'N/A'}
                           </Typography>
                         </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="View Details">
-                            <IconButton
-                              onClick={() => navigate(`/exam/${examId}/result`)}
-                              color="primary"
-                              size="small"
-                            >
-                              <IconEye size={20} />
-                            </IconButton>
-                          </Tooltip>
-                          </TableCell>
+                        
                         </TableRow>
                       )})
                     ) : (

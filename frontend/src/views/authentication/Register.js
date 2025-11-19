@@ -8,6 +8,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useRegisterMutation } from './../../slices/usersApiSlice';
 import { setCredentials } from './../../slices/authSlice';
@@ -16,6 +17,11 @@ import Loader from './Loader';
 const userValidationSchema = yup.object({
   name: yup.string().min(2).max(25).required('Please enter your name'),
   email: yup.string('Enter your email').email('Enter a valid email').required('Email is required'),
+  rollNumber: yup.string().when('role', {
+    is: 'student',
+    then: (schema) => schema.required('Roll number is required for students'),
+    otherwise: (schema) => schema.notRequired(),
+  }),
   password: yup
     .string('Enter your password')
     .min(6, 'Password should be of minimum 6 characters length')
@@ -26,15 +32,22 @@ const userValidationSchema = yup.object({
     .oneOf([yup.ref('password'), null], 'Password must match'),
   role: yup.string().oneOf(['student', 'teacher'], 'Invalid role').required('Role is required'),
 });
-const initialUserValues = {
-  name: '',
-  email: '',
-  password: '',
-  confirm_password: '',
-  role: 'student',
-};
+// initial values will be created inside component so we can read URL params
 
 const Register = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const roleParam = params.get('role') || 'student';
+
+  const initialUserValues = {
+    name: '',
+    email: '',
+    rollNumber: '',
+    password: '',
+    confirm_password: '',
+    role: roleParam,
+  };
+
   const formik = useFormik({
     initialValues: initialUserValues,
     validationSchema: userValidationSchema,
@@ -56,16 +69,16 @@ const Register = () => {
     }
   }, [navigate, userInfo]);
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-  };
+  // submit handled via formik/onSubmit
 
-  const handleSubmit = async ({ name, email, password, confirm_password, role }) => {
+  const handleSubmit = async ({ name, email, rollNumber, password, confirm_password, role }) => {
     if (password !== confirm_password) {
       toast.error('Passwords do not match');
     } else {
       try {
-        const res = await register({ name, email, password, role }).unwrap();
+        const payload = { name, email, password, role };
+        if (role === 'student') payload.rollNumber = rollNumber;
+        const res = await register(payload).unwrap();
         dispatch(setCredentials({ ...res }));
         formik.resetForm();
 

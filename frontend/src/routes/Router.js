@@ -20,6 +20,7 @@ const Success = Loadable(lazy(() => import('../views/Success')));
 const TestPage = Loadable(lazy(() => import('./../views/student/TestPage')));
 const ExamPage = Loadable(lazy(() => import('./../views/student/ExamPage')));
 const ExamDetails = Loadable(lazy(() => import('./../views/student/ExamDetails')));
+const CategoryTests = Loadable(lazy(() => import('./../views/student/CategoryTests')));
 const MyTasksPage = Loadable(lazy(() => import('./../views/student/MyTasksPage')));
 const StudentProfile = Loadable(lazy(() => import('./../views/student/ProfilePage')));
 const MyResultsPage = Loadable(lazy(() => import('./../views/student/MyResultsPage')));
@@ -28,6 +29,8 @@ const ProfilePage = Loadable(lazy(() => import('./../views/ProfilePage')));
 const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 const Register = Loadable(lazy(() => import('../views/authentication/Register')));
 const Login = Loadable(lazy(() => import('../views/authentication/Login')));
+const LoginStudent = Loadable(lazy(() => import('../views/authentication/LoginStudent')));
+const LoginTeacher = Loadable(lazy(() => import('../views/authentication/LoginTeacher')));
 const UserAccount = Loadable(lazy(() => import('../views/authentication/UserAccount')));
 
 // Teacher Routes
@@ -54,6 +57,7 @@ const Router = createBrowserRouter(
           <Route path="/sample-page" exact={true} element={<SamplePage />} />
           <Route path="/Success" exact={true} element={<Success />} />
           <Route path="/exam" exact={true} element={<ExamPage />} />
+          <Route path="/exam/category/:categoryId" exact={true} element={<CategoryTests />} />
           <Route path="/my-tasks" exact={true} element={<MyTasksPage />} />
           <Route path="/my-results" exact={true} element={<MyResultsPage />} />
           <Route path="/profile" exact={true} element={<StudentProfile />} />
@@ -80,8 +84,10 @@ const Router = createBrowserRouter(
       {/* Authentication layout */}
       <Route path="/auth" element={<BlankLayout />}>
         <Route path="404" element={<Error />} />
-        <Route path="/auth/register" element={<Register />} />
-        <Route path="/auth/login" element={<Login />} />
+  <Route path="/auth/register" element={<Register />} />
+  <Route path="/auth/login" element={<Login />} />
+  <Route path="/auth/login-student" element={<LoginStudent />} />
+  <Route path="/auth/login-teacher" element={<LoginTeacher />} />
         {/* <Route path="*" element={<Navigate to="/auth/404" />} /> */}
       </Route>
     </>,

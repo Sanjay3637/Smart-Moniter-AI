@@ -69,6 +69,34 @@ const AuthRegister = ({ formik, title, subtitle, subtext }) => {
             //   size="small"
           />
 
+          {values.role === 'student' ? (
+            <>
+              <Typography
+                variant="subtitle1"
+                fontWeight={600}
+                component="label"
+                htmlFor="rollNumber"
+                mb="5px"
+                mt="10px"
+              >
+                Roll Number
+              </Typography>
+              <CustomTextField
+                id="rollNumber"
+                name="rollNumber"
+                variant="outlined"
+                placeholder="Enter Your Roll Number"
+                value={values.rollNumber}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.rollNumber && errors.rollNumber ? true : false}
+                helperText={touched.rollNumber && errors.rollNumber ? errors.rollNumber : null}
+                required
+                fullWidth
+              />
+            </>
+          ) : null}
+
           <Typography
             variant="subtitle1"
             fontWeight={600}

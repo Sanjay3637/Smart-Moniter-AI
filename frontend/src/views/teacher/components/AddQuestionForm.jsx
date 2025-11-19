@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
   Button,
   TextField,
   FormControlLabel,
@@ -35,6 +34,9 @@ const AddQuestionForm = () => {
       console.log(examsData[0]._id, 'examsData[0]._id');
     }
   }, [examsData]);
+
+  // derive selected exam object for displaying extra info like category
+  const selectedExam = examsData?.find((e) => e._id === selectedExamId);
 
   const handleAddQuestion = async () => {
     if (newQuestion.trim() === '' || newOptions.some((option) => option.trim() === '')) {
@@ -91,6 +93,17 @@ const AddQuestionForm = () => {
             </MenuItem>
           ))}
       </Select>
+
+      {/* Show category for selected exam so teacher can verify it */}
+      <TextField
+        label="Category"
+        fullWidth
+        value={selectedExam?.category?.name || 'Uncategorized'}
+        InputProps={{
+          readOnly: true,
+        }}
+        sx={{ mb: 2 }}
+      />
 
       {questions.map((questionObj, questionIndex) => (
         <div key={questionIndex}>
@@ -163,8 +176,8 @@ const AddQuestionForm = () => {
       ))}
 
       <Stack mt={2} direction="row" spacing={2}>
-        <Button variant="outlined" onClick={handleAddQuestion}>
-          Add Question
+        <Button variant="outlined" onClick={handleAddQuestion} disabled={isLoading}>
+          {isLoading ? 'Adding...' : 'Add Question'}
         </Button>
         <Button variant="outlined" onClick={handleSubmitQuestions}>
           Submit Questions

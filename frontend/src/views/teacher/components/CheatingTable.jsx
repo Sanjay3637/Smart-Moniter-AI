@@ -13,26 +13,62 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Grid,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useGetExamsQuery } from 'src/slices/examApiSlice';
+import { useGetExamsQuery, useGetCategoriesQuery } from 'src/slices/examApiSlice';
 import { useGetCheatingLogsQuery } from 'src/slices/cheatingLogApiSlice';
 import { useDeleteCheatingLogMutation } from 'src/slices/cheatingLogApiSlice';
 
 export default function CheatingTable() {
   const [filter, setFilter] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedExamId, setSelectedExamId] = useState('');
   const [cheatingLogs, setCheatingLogs] = useState([]);
+  const [filteredExams, setFilteredExams] = useState([]);
 
+  const { data: categoriesData } = useGetCategoriesQuery();
   const { data: examsData } = useGetExamsQuery();
-  const { data: cheatingLogsData } = useGetCheatingLogsQuery(selectedExamId);
+  const { data: cheatingLogsData, refetch: refetchCheatingLogs } = useGetCheatingLogsQuery(selectedExamId);
   const [deleteCheatingLog] = useDeleteCheatingLogMutation();
 
+  // Filter exams based on selected category
   useEffect(() => {
-    if (examsData && examsData.length > 0) {
-      setSelectedExamId(examsData[0]._id);
+    if (examsData) {
+      const filtered = selectedCategoryId 
+        ? examsData.filter(exam => exam.category?._id === selectedCategoryId)
+        : [...examsData];
+      setFilteredExams(filtered);
+      
+      // Reset selected exam if it's not in the filtered list
+      if (selectedExamId && !filtered.some(exam => exam._id === selectedExamId)) {
+        setSelectedExamId('');
+      }
     }
-  }, [examsData]);
+  }, [examsData, selectedCategoryId, selectedExamId]);
+
+  // Set first category and exam by default
+  useEffect(() => {
+    if (categoriesData?.length > 0 && !selectedCategoryId) {
+      setSelectedCategoryId(categoriesData[0]._id);
+    }
+  }, [categoriesData, selectedCategoryId]);
+
+  // Set first exam when filtered exams change
+  useEffect(() => {
+    if (filteredExams.length > 0 && !selectedExamId) {
+      setSelectedExamId(filteredExams[0]._id);
+    }
+  }, [filteredExams, selectedExamId]);
+
+  // Update cheating logs when selected exam changes
+  useEffect(() => {
+    if (selectedExamId) {
+      refetchCheatingLogs();
+    }
+  }, [selectedExamId, refetchCheatingLogs]);
 
   useEffect(() => {
     if (cheatingLogsData) {
@@ -42,28 +78,52 @@ export default function CheatingTable() {
 
   const filteredUsers = cheatingLogs.filter(
     (log) =>
-      log.username.toLowerCase().includes(filter.toLowerCase()) ||
-      log.email.toLowerCase().includes(filter.toLowerCase()),
+      log.username?.toLowerCase().includes(filter.toLowerCase()) ||
+      log.email?.toLowerCase().includes(filter.toLowerCase()),
   );
 
   return (
     <Box>
-      <Select
-        label="Select Exam"
-        value={selectedExamId}
-        onChange={(e) => {
-          setSelectedExamId(e.target.value);
-        }}
-        fullWidth
-        sx={{ mb: 2 }}
-      >
-        {examsData &&
-          examsData.map((exam) => (
-            <MenuItem key={exam._id} value={exam._id}>
-              {exam.examName}
-            </MenuItem>
-          ))}
-      </Select>
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel id="category-select-label">Select Category</InputLabel>
+            <Select
+              labelId="category-select-label"
+              value={selectedCategoryId || ''}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              label="Select Category"
+            >
+              {categoriesData?.map((category) => (
+                <MenuItem key={category._id} value={category._id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel id="exam-select-label">Select Exam</InputLabel>
+            <Select
+              labelId="exam-select-label"
+              value={selectedExamId || ''}
+              onChange={(e) => setSelectedExamId(e.target.value)}
+              label="Select Exam"
+              disabled={!selectedCategoryId || filteredExams.length === 0}
+            >
+              {filteredExams.map((exam) => (
+                <MenuItem key={exam._id} value={exam._id}>
+                  {exam.examName}
+                </MenuItem>
+              ))}
+              {filteredExams.length === 0 && (
+                <MenuItem disabled>No exams available in this category</MenuItem>
+              )}
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
       <TextField
         label="Filter by Name or Email"
         variant="outlined"
@@ -109,7 +169,7 @@ export default function CheatingTable() {
                           return;
                         }
                         try {
-                          await deleteCheatingLog(log._id).unwrap();
+                          await deleteCheatingLog({ id: log._id, examId: selectedExamId }).unwrap();
                           // refetch will be handled by RTK Query invalidation; also update local state optimistically
                           setCheatingLogs((prev) => prev.filter((l) => l._id !== log._id));
                         } catch (err) {

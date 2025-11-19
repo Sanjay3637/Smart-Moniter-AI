@@ -10,9 +10,15 @@ const assignmentSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    studentEmail: {
+    // store student roll number (primary lookup for students)
+    studentRoll: {
       type: String,
       required: true,
+    },
+    // optional student email for contact (kept for backwards compatibility)
+    studentEmail: {
+      type: String,
+      required: false,
     },
     studentName: {
       type: String,

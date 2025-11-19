@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const questionSchema = mongoose.Schema(
   {
@@ -18,9 +18,11 @@ const questionSchema = mongoose.Schema(
         },
       },
     ],
+    // reference the Exam _id for consistency with Result model
     examId: {
-      type: String, // Use the same data type (String) as in the exam model
-      required: true, // You can make examId required if it's always present
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Exam',
+      required: true,
     },
   },
   {
@@ -28,6 +30,6 @@ const questionSchema = mongoose.Schema(
   }
 );
 
-const Question = mongoose.model("Question", questionSchema);
+const Question = mongoose.model('Question', questionSchema);
 
 export default Question;

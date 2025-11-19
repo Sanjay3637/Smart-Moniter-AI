@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { useUpdateUserMutation } from '../../slices/usersApiSlice';
+import { useUpdateUserMutation, useGetProfileQuery } from '../../slices/usersApiSlice';
 import { setCredentials } from '../../slices/authSlice';
 import PageContainer from 'src/components/container/PageContainer';
 import {
@@ -32,6 +32,7 @@ import {
 const ProfilePage = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const { data: profileData } = useGetProfileQuery();
   const [updateProfile, { isLoading }] = useUpdateUserMutation();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -47,6 +48,14 @@ const ProfilePage = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const displayUser = profileData || userInfo || {};
+
+  const formatDateSafe = (value) => {
+    if (!value) return 'N/A';
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const handleSubmit = async () => {
@@ -117,13 +126,13 @@ const ProfilePage = () => {
                   mb: 2,
                 }}
               >
-                {getInitials(userInfo?.name)}
+                {getInitials(displayUser?.name)}
               </Avatar>
               <Typography variant="h5" fontWeight={600} mb={1}>
-                {userInfo?.name}
+                {displayUser?.name}
               </Typography>
               <Typography variant="body2" color="textSecondary" mb={1}>
-                {userInfo?.email}
+                {displayUser?.email}
               </Typography>
               <Paper
                 sx={{
@@ -147,7 +156,7 @@ const ProfilePage = () => {
                 <Box display="flex" alignItems="center" gap={1}>
                   <IconCalendar size={20} />
                   <Typography variant="body2" color="textSecondary">
-                    Joined: {new Date(userInfo?.createdAt).toLocaleDateString() || 'N/A'}
+                    Joined: {formatDateSafe(displayUser?.createdAt)}
                   </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" gap={1}>

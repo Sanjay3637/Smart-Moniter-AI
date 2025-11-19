@@ -7,10 +7,21 @@ const userSchema = mongoose.Schema(
       require: true,
     },
 
+    // optional email (kept for contact) - rollNumber is primary credential for students
     email: {
       type: String,
-      require: true,
+      require: false,
       unique: true,
+      sparse: true,
+    },
+
+    // rollNumber will be used for student login (unique per student)
+    // Not required for teachers; make sparse so documents without rollNumber are allowed
+    rollNumber: {
+      type: String,
+      require: false,
+      unique: true,
+      sparse: true,
     },
 
     password: {

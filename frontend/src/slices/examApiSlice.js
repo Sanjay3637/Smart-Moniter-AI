@@ -13,6 +13,26 @@ export const examApiSlice = apiSlice.injectEndpoints({
         method: 'GET',
       }),
     }),
+    // Categories
+    getCategories: builder.query({
+      query: () => ({
+        url: `${EXAMS_URL}/categories`,
+        method: 'GET',
+      }),
+    }),
+    createCategory: builder.mutation({
+      query: (data) => ({
+        url: `${EXAMS_URL}/categories`,
+        method: 'POST',
+        body: data,
+      }),
+    }),
+    deleteCategory: builder.mutation({
+      query: (categoryId) => ({
+        url: `${EXAMS_URL}/categories/${categoryId}`,
+        method: 'DELETE',
+      }),
+    }),
     // Create a new exam
     createExam: builder.mutation({
       query: (data) => ({
@@ -58,6 +78,9 @@ export const examApiSlice = apiSlice.injectEndpoints({
 // Export the generated hooks for each endpoint
 export const {
   useGetExamsQuery,
+  useGetCategoriesQuery,
+  useCreateCategoryMutation,
+  useDeleteCategoryMutation,
   useCreateExamMutation,
   useGetQuestionsQuery,
   useCreateQuestionMutation,

@@ -9,7 +9,6 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Typography,
 } from '@mui/material';
 
 import { IconListCheck, IconMail, IconUser } from '@tabler/icons-react';
@@ -98,12 +97,14 @@ const Profile = () => {
           </ListItemIcon>
           <ListItemText>My Account</ListItemText>
         </MenuItem>
-        <MenuItem>
-          <ListItemIcon component={Link} to="/user/tasks">
-            <IconListCheck width={20} />
-          </ListItemIcon>
-          <ListItemText>My Tasks</ListItemText>
-        </MenuItem>
+        {userInfo?.role === 'student' && (
+          <MenuItem component={Link} to="/user/tasks">
+            <ListItemIcon>
+              <IconListCheck width={20} />
+            </ListItemIcon>
+            <ListItemText>My Tasks</ListItemText>
+          </MenuItem>
+        )}
         <Box mt={1} py={1} px={2}>
           <Button variant="outlined" color="primary" onClick={logoutHandler} fullWidth>
             Logout

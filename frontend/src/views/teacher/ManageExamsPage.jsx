@@ -12,7 +12,7 @@ import {
 import { IconTrash, IconPlus } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
-import { useGetExamsQuery, useDeleteExamMutation } from 'src/slices/examApiSlice';
+import { useGetExamsQuery, useDeleteExamMutation, useGetCategoriesQuery, useDeleteCategoryMutation } from 'src/slices/examApiSlice';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import swal from 'sweetalert';
@@ -20,7 +20,9 @@ import swal from 'sweetalert';
 const ManageExamsPage = () => {
   const navigate = useNavigate();
   const { data: exams, isLoading, isError, refetch } = useGetExamsQuery();
+  const { data: categories = [], refetch: refetchCategories } = useGetCategoriesQuery();
   const [deleteExam, { isLoading: isDeleting }] = useDeleteExamMutation();
+  const [deleteCategory, { isLoading: isDeletingCategory }] = useDeleteCategoryMutation();
 
   const handleDeleteExam = async (examId, examName) => {
     const willDelete = await swal({
@@ -84,6 +86,51 @@ const ManageExamsPage = () => {
           </Button>
         </Box>
 
+        {/* Categories management */}
+        <Box mb={3}>
+          <Typography variant="subtitle1" mb={1}>Categories</Typography>
+          <Grid container spacing={2}>
+            {categories && categories.length > 0 ? (
+              categories.map((cat) => (
+                <Grid item key={cat._id}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Chip label={cat.name} />
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={async () => {
+                        const willDelete = await swal({
+                          title: 'Delete category?',
+                          text: `Delete category "${cat.name}" and all its association?`,
+                          icon: 'warning',
+                          buttons: ['Cancel', 'Delete'],
+                          dangerMode: true,
+                        });
+                        if (willDelete) {
+                          try {
+                            await deleteCategory(cat._id).unwrap();
+                            toast.success('Category deleted');
+                            refetchCategories();
+                            refetch();
+                          } catch (err) {
+                            toast.error(err?.data?.message || 'Failed to delete category');
+                          }
+                        }
+                      }}
+                    >
+                      <IconTrash size={16} />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              ))
+            ) : (
+              <Grid item>
+                <Typography color="textSecondary">No categories yet</Typography>
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+
         <Grid container spacing={3}>
           {exams && exams.length > 0 ? (
             exams.map((exam) => (
@@ -129,6 +176,9 @@ const ManageExamsPage = () => {
                         color="secondary"
                         sx={{ mb: 1 }}
                       />
+                      {exam.category && exam.category.name ? (
+                        <Chip label={exam.category.name} size="small" sx={{ ml: 1 }} />
+                      ) : null}
                     </Box>
 
                     <Typography variant="body2" color="textSecondary" mb={0.5}>

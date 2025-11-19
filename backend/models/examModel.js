@@ -29,6 +29,12 @@ const examSchema = mongoose.Schema(
       default: uuidv4, // Generate a new UUID for each document
       unique: true, // Ensure uniqueness of UUIDs
     },
+
+    // Optional reference to a category (created by teacher)
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+    },
   },
   {
     timestamps: true,

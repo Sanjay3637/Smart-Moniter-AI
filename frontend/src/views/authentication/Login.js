@@ -1,48 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Grid, Box, Card, Stack, Typography } from '@mui/material';
+import { Grid, Box, Card, Stack, Typography, Button } from '@mui/material';
 
 import PageContainer from 'src/components/container/PageContainer';
 import Logo from 'src/layouts/full/shared/logo/Logo';
-import AuthLogin from './auth/AuthLogin';
+import { useSelector } from 'react-redux';
 
-import { useFormik } from 'formik';
-import * as yup from 'yup';
-
-import { useDispatch, useSelector } from 'react-redux';
-
-import { useLoginMutation } from './../../slices/usersApiSlice';
-
-import { setCredentials } from './../../slices/authSlice';
-import { toast } from 'react-toastify';
-import Loader from './Loader';
-
-const userValidationSchema = yup.object({
-  email: yup.string('Enter your email').email('Enter a valid email').required('Email is required'),
-  password: yup
-    .string('Enter your password')
-    .min(2, 'Password should be of minimum 8 characters length')
-    .required('Password is required'),
-});
-const initialUserValues = {
-  email: '',
-  password: '',
-};
+// This page lets the user choose whether to login as student or teacher
 
 const Login = () => {
-  const formik = useFormik({
-    initialValues: initialUserValues,
-    validationSchema: userValidationSchema,
-    onSubmit: (values, action) => {
-      handleSubmit(values);
-    },
-  });
-
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const [login, { isLoading }] = useLoginMutation();
-
   const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -50,25 +17,6 @@ const Login = () => {
       navigate('/');
     }
   }, [navigate, userInfo]);
-
-  const handleSubmit = async ({ email, password }) => {
-    try {
-      const res = await login({ email, password }).unwrap();
-
-      dispatch(setCredentials({ ...res }));
-      formik.resetForm();
-
-      const redirectLocation = JSON.parse(localStorage.getItem('redirectLocation'));
-      if (redirectLocation) {
-        localStorage.removeItem('redirectLocation');
-        navigate(redirectLocation.pathname);
-      } else {
-        navigate('/');
-      }
-    } catch (err) {
-      toast.error(err?.data?.message || err.error);
-    }
-  };
 
   return (
     <PageContainer title="Login" description="this is Login page">
@@ -102,33 +50,32 @@ const Login = () => {
               <Box display="flex" alignItems="center" justifyContent="center">
                 <Logo />
               </Box>
-              <AuthLogin
-                formik={formik}
-                subtext={
-                  <Typography variant="subtitle1" textAlign="center" color="textSecondary" mb={1}>
-                    CONDUCT SECURE ONLINE EXAMS NOW
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                <Typography variant="h5" fontWeight={600} mb={2}>
+                  Select Login Type
+                </Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} width="100%">
+                  <Button component={Link} to="/auth/login-student" variant="contained" fullWidth>
+                    Student Login
+                  </Button>
+                  <Button component={Link} to="/auth/login-teacher" variant="outlined" fullWidth>
+                    Teacher Login
+                  </Button>
+                </Stack>
+                <Stack direction="row" spacing={1} justifyContent="center" mt={3}>
+                  <Typography color="textSecondary" variant="h6" fontWeight="500">
+                    New to Modernize?
                   </Typography>
-                }
-                subtitle={
-                  <Stack direction="row" spacing={1} justifyContent="center" mt={3}>
-                    <Typography color="textSecondary" variant="h6" fontWeight="500">
-                      New to Modernize?
-                    </Typography>
-                    <Typography
-                      component={Link}
-                      to="/auth/register"
-                      fontWeight="500"
-                      sx={{
-                        textDecoration: 'none',
-                        color: 'primary.main',
-                      }}
-                    >
-                      Create an account
-                    </Typography>
-                    {isLoading && <Loader />}
-                  </Stack>
-                }
-              />
+                  <Typography
+                    component={Link}
+                    to="/auth/register"
+                    fontWeight="500"
+                    sx={{ textDecoration: 'none', color: 'primary.main' }}
+                  >
+                    Create an account
+                  </Typography>
+                </Stack>
+              </Box>
             </Card>
           </Grid>
         </Grid>

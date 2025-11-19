@@ -6,41 +6,43 @@ import User from "../models/userModel.js";
 // @route POST /api/users/assignments
 // @access Private (teacher only)
 const createAssignment = asyncHandler(async (req, res) => {
-  const { examId, examName, studentEmail, dueDate } = req.body;
+  const { examId, examName, studentRoll, dueDate } = req.body;
 
-  // Find student by email
-  const student = await User.findOne({ email: studentEmail });
+  // Find student by roll number
+  const student = await User.findOne({ rollNumber: studentRoll });
 
   if (!student) {
     res.status(404);
-    throw new Error("Student not found with this email");
+    throw new Error('Student not found with this roll number');
   }
 
-  if (student.role !== "student") {
+  if (student.role !== 'student') {
     res.status(400);
-    throw new Error("The email provided is not a student account");
+    throw new Error('The provided roll number does not belong to a student account');
   }
 
-  // Check if assignment already exists
+  // Check if assignment already exists for this student roll
   const existingAssignment = await Assignment.findOne({
     examId,
-    studentEmail,
+    studentRoll,
   });
 
   if (existingAssignment) {
     res.status(400);
-    throw new Error("This exam is already assigned to this student");
+    throw new Error('This exam is already assigned to this student');
   }
 
   const assignment = new Assignment({
     examId,
     examName,
-    studentEmail,
+    studentRoll,
+    // keep studentEmail in assignment for contact if user has one
+    studentEmail: student.email || undefined,
     studentName: student.name,
     assignedBy: req.user.name,
     assignedByEmail: req.user.email,
     dueDate,
-    status: "pending",
+    status: 'pending',
   });
 
   const createdAssignment = await assignment.save();
@@ -67,8 +69,9 @@ const getTeacherAssignments = asyncHandler(async (req, res) => {
 // @route GET /api/users/assignments/my-tasks
 // @access Private (student only)
 const getStudentAssignments = asyncHandler(async (req, res) => {
+  // students are identified by roll number
   const assignments = await Assignment.find({
-    studentEmail: req.user.email,
+    studentRoll: req.user.rollNumber,
   }).sort({ dueDate: 1 });
   res.status(200).json(assignments);
 });

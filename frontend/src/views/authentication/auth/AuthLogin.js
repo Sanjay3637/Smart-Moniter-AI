@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 
 import CustomTextField from '../../../components/forms/theme-elements/CustomTextField';
 
-const AuthLogin = ({ formik, title, subtitle, subtext }) => {
+const AuthLogin = ({ formik, title, subtitle, subtext, usernameFieldName = 'email', usernameLabel = 'Username', placeholder = 'Enter Your Email' }) => {
   const { values, errors, touched, handleBlur, handleChange, handleSubmit } = formik;
   return (
     <>
@@ -33,18 +33,18 @@ const AuthLogin = ({ formik, title, subtitle, subtext }) => {
             htmlFor="username"
             mb="5px"
           >
-            Username
+            {usernameLabel}
           </Typography>
           <CustomTextField
             id="username"
-            name="email"
+            name={usernameFieldName}
             variant="outlined"
-            placeholder="Enter Your Email"
-            value={values.email}
+            placeholder={placeholder}
+            value={values[usernameFieldName]}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={touched.email && errors.email ? true : false}
-            helperText={touched.email && errors.email ? errors.email : null}
+            error={touched[usernameFieldName] && errors[usernameFieldName] ? true : false}
+            helperText={touched[usernameFieldName] && errors[usernameFieldName] ? errors[usernameFieldName] : null}
             required
             fullWidth
           />
