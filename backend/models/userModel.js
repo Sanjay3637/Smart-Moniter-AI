@@ -32,6 +32,16 @@ const userSchema = mongoose.Schema(
       type: String,
       require: true,
     },
+    // number of recorded malpractice incidents
+    malpracticeCount: {
+      type: Number,
+      default: 0,
+    },
+    // if true, student cannot log in and must be unblocked by a teacher
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

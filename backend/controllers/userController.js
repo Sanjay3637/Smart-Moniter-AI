@@ -16,6 +16,13 @@ const authUser = asyncHandler(async (req, res) => {
   }
 
   if (user && (await user.matchPassword(password))) {
+    // if student is blocked, prevent login
+    if (user.role === 'student' && user.isBlocked) {
+      res.status(403);
+      throw new Error(
+        'Your account is blocked due to malpractice. Please contact your teacher to get unblocked.'
+      );
+    }
     generateToken(res, user._id);
 
     res.status(201).json({
@@ -25,6 +32,8 @@ const authUser = asyncHandler(async (req, res) => {
       rollNumber: user.rollNumber,
       role: user.role,
       password_encrypted: user.password,
+      isBlocked: user.isBlocked,
+      malpracticeCount: user.malpracticeCount,
       message: "User successfully logged in with role: " + user.role,
     });
   } else {
@@ -80,6 +89,8 @@ const registerUser = asyncHandler(async (req, res) => {
       rollNumber: user.rollNumber,
       role: user.role,
       password_encrypted: user.password,
+      isBlocked: user.isBlocked,
+      malpracticeCount: user.malpracticeCount,
       message: 'User successfully created with role: ' + user.role,
     });
   } else {
@@ -104,6 +115,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
     rollNumber: req.user.rollNumber,
     role: req.user.role,
     createdAt: req.user.createdAt,
+    isBlocked: req.user.isBlocked,
+    malpracticeCount: req.user.malpracticeCount,
   };
   res.status(200).json(user);
 });
@@ -136,16 +149,54 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       email: updatedUser.email,
       role: updatedUser.role,
       createdAt: updatedUser.createdAt,
+      isBlocked: updatedUser.isBlocked,
+      malpracticeCount: updatedUser.malpracticeCount,
     });
   } else {
     res.status(404);
     throw new Error("User Not Found");
   }
 });
+
+// Teacher-only: unblock a student and optionally reset malpracticeCount
+const unblockUser = asyncHandler(async (req, res) => {
+  const { email, rollNumber, resetCount = true } = req.body || {};
+
+  if (!email && !rollNumber) {
+    res.status(400);
+    throw new Error('Provide email or rollNumber to unblock');
+  }
+
+  const query = email ? { email } : { rollNumber };
+  const user = await User.findOne(query);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  if (user.role !== 'student') {
+    res.status(400);
+    throw new Error('Only students can be unblocked');
+  }
+
+  user.isBlocked = false;
+  if (resetCount) user.malpracticeCount = 0;
+  await user.save();
+
+  res.status(200).json({
+    message: 'User unblocked successfully',
+    _id: user._id,
+    email: user.email,
+    rollNumber: user.rollNumber,
+    malpracticeCount: user.malpracticeCount,
+    isBlocked: user.isBlocked,
+  });
+});
+
 export {
   authUser,
   registerUser,
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  unblockUser,
 };

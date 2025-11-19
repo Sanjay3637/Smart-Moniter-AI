@@ -47,11 +47,19 @@ export const userApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ['UserProfile'],
     }),
+    // Teacher-only: unblock a student
+    unblockUser: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/unblock`,
+        method: 'POST',
+        body: data, // { email or rollNumber, resetCount? }
+      }),
+    }),
   }),
 });
 
 // it specify convention to export them
 // like for mutation we have to add use + name + Mutation
 // like for query we have to add use + name + query
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery } =
+export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation } =
   userApiSlice;

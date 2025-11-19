@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import mongoose from 'mongoose';
 import CheatingLog from "../models/cheatingLogModel.js";
+import User from "../models/userModel.js";
 
 // @desc Save cheating log data
 // @route POST /api/cheatingLogs
@@ -27,6 +28,28 @@ const saveCheatingLog = asyncHandler(async (req, res) => {
   });
 
   const savedLog = await cheatingLog.save();
+
+  // Try to locate the student and update malpractice counters.
+  // Prefer authenticated user (student) if available; else try by email.
+  try {
+    let targetUser = null;
+    if (req.user && req.user.role === 'student') {
+      targetUser = await User.findById(req.user._id);
+    } else if (email) {
+      targetUser = await User.findOne({ email });
+    }
+
+    if (targetUser && targetUser.role === 'student') {
+      targetUser.malpracticeCount = (targetUser.malpracticeCount || 0) + 1;
+      if (targetUser.malpracticeCount >= 2) {
+        targetUser.isBlocked = true;
+      }
+      await targetUser.save();
+    }
+  } catch (e) {
+    // do not fail the request if user update fails; log in server logs
+    console.error('Failed to update malpractice counters', e);
+  }
 
   if (savedLog) {
     res.status(201).json(savedLog);

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Grid, Box, Card, Stack, Typography } from '@mui/material';
+import { Grid, Box, Card, Stack, Typography, Dialog, DialogTitle, DialogContent, Button } from '@mui/material';
 
 import PageContainer from 'src/components/container/PageContainer';
 import Logo from 'src/layouts/full/shared/logo/Logo';
@@ -27,6 +27,8 @@ const initialUserValues = {
 };
 
 const LoginStudent = () => {
+  const [blockedOpen, setBlockedOpen] = useState(false);
+  const [blockedText, setBlockedText] = useState('');
   const formik = useFormik({
     initialValues: initialUserValues,
     validationSchema: userValidationSchema,
@@ -51,12 +53,18 @@ const LoginStudent = () => {
   const handleSubmit = async ({ rollNumber, password }) => {
     try {
       const res = await login({ rollNumber, password }).unwrap();
-
       dispatch(setCredentials({ ...res }));
       formik.resetForm();
       navigate('/');
     } catch (err) {
-      toast.error(err?.data?.message || err.error);
+      const status = err?.status;
+      const msg = err?.data?.message || err.error || 'Login failed';
+      if (status === 403) {
+        setBlockedText('You have been blocked due to malpractice. Please contact your teacher to get unblocked.');
+        setBlockedOpen(true);
+      } else {
+        toast.error(msg);
+      }
     }
   };
 
@@ -95,6 +103,24 @@ const LoginStudent = () => {
           </Grid>
         </Grid>
       </Box>
+      <Dialog open={blockedOpen} onClose={() => setBlockedOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Access Blocked
+        </DialogTitle>
+        <DialogContent>
+          <Box display="flex" flexDirection="column" alignItems="center" textAlign="center" py={2}>
+            <Typography variant="h6" gutterBottom>
+              {blockedText}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              Contact your teacher to be unblocked and retake future tests.
+            </Typography>
+            <Button variant="contained" color="primary" onClick={() => setBlockedOpen(false)}>
+              OK
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   );
 };

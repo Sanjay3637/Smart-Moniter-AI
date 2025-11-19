@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useGetExamsQuery, useGetCategoriesQuery } from 'src/slices/examApiSlice';
 import { useGetCheatingLogsQuery } from 'src/slices/cheatingLogApiSlice';
 import { useDeleteCheatingLogMutation } from 'src/slices/cheatingLogApiSlice';
+import { useUnblockUserMutation } from 'src/slices/usersApiSlice';
 
 export default function CheatingTable() {
   const [filter, setFilter] = useState('');
@@ -33,6 +34,7 @@ export default function CheatingTable() {
   const { data: examsData } = useGetExamsQuery();
   const { data: cheatingLogsData, refetch: refetchCheatingLogs } = useGetCheatingLogsQuery(selectedExamId);
   const [deleteCheatingLog] = useDeleteCheatingLogMutation();
+  const [unblockUser] = useUnblockUserMutation();
 
   // Filter exams based on selected category
   useEffect(() => {
@@ -143,6 +145,7 @@ export default function CheatingTable() {
               <TableCell>Multiple Face Count</TableCell>
               <TableCell>Cell Phone Count</TableCell>
               <TableCell>Prohibited Object Count</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -156,31 +159,56 @@ export default function CheatingTable() {
                 <TableCell>{log.cellPhoneCount}</TableCell>
                 <TableCell>{log.prohibitedObjectCount}</TableCell>
                 <TableCell>
-                  <Tooltip title="Delete attempt">
-                    <IconButton
-                      color="error"
-                      onClick={async () => {
-                        const ok = window.confirm(
-                          `Delete cheating log for ${log.username}? This action cannot be undone.`,
-                        );
-                        if (!ok) return;
-                        if (!log._id) {
-                          window.alert('Cannot delete: missing log id');
-                          return;
-                        }
-                        try {
-                          await deleteCheatingLog({ id: log._id, examId: selectedExamId }).unwrap();
-                          // refetch will be handled by RTK Query invalidation; also update local state optimistically
-                          setCheatingLogs((prev) => prev.filter((l) => l._id !== log._id));
-                        } catch (err) {
-                          console.error('Delete failed', err);
-                          window.alert('Failed to delete attempt. See console for details.');
-                        }
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
+                  <Grid container spacing={1} alignItems="center">
+                    <Grid item>
+                      <Tooltip title="Delete attempt">
+                        <IconButton
+                          color="error"
+                          onClick={async () => {
+                            const ok = window.confirm(
+                              `Delete cheating log for ${log.username}? This action cannot be undone.`,
+                            );
+                            if (!ok) return;
+                            if (!log._id) {
+                              window.alert('Cannot delete: missing log id');
+                              return;
+                            }
+                            try {
+                              await deleteCheatingLog({ id: log._id, examId: selectedExamId }).unwrap();
+                              setCheatingLogs((prev) => prev.filter((l) => l._id !== log._id));
+                            } catch (err) {
+                              console.error('Delete failed', err);
+                              window.alert('Failed to delete attempt. See console for details.');
+                            }
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grid>
+                    <Grid item>
+                      <Tooltip title="Unblock student">
+                        <IconButton
+                          color="primary"
+                          onClick={async () => {
+                            if (!log.email) {
+                              window.alert('Cannot unblock: missing student email in log');
+                              return;
+                            }
+                            try {
+                              await unblockUser({ email: log.email, resetCount: true }).unwrap();
+                              window.alert(`Unblocked ${log.username || log.email}`);
+                            } catch (err) {
+                              console.error('Unblock failed', err);
+                              window.alert('Failed to unblock student. See console for details.');
+                            }
+                          }}
+                        >
+                          <span style={{ fontSize: 12, fontWeight: 600 }}>UNBLOCK</span>
+                        </IconButton>
+                      </Tooltip>
+                    </Grid>
+                  </Grid>
                 </TableCell>
               </TableRow>
             ))}
