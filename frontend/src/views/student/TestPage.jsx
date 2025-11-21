@@ -6,7 +6,7 @@ import BlankCard from 'src/components/shared/BlankCard';
 import MultipleChoiceQuestion from './Components/MultipleChoiceQuestion';
 import NumberOfQuestions from './Components/NumberOfQuestions';
 import WebCam from './Components/WebCam';
-import { useGetExamsQuery, useGetQuestionsQuery } from '../../slices/examApiSlice';
+import { useGetExamsQuery, useGetQuestionsQuery, useSubmitExamMutation } from '../../slices/examApiSlice';
 import { useSaveCheatingLogMutation } from 'src/slices/cheatingLogApiSlice';
 import { useGetStudentTasksQuery, useUpdateAssignmentMutation } from 'src/slices/assignmentApiSlice';
 import { useSelector } from 'react-redux';
@@ -41,6 +41,7 @@ const TestPage = () => {
   const navigate = useNavigate();
 
   const [saveCheatingLogMutation] = useSaveCheatingLogMutation();
+  const [submitExam] = useSubmitExamMutation();
   const [updateAssignment] = useUpdateAssignmentMutation();
   const { data: assignments } = useGetStudentTasksQuery();
   const { userInfo } = useSelector((state) => state.auth);
@@ -62,16 +63,15 @@ const TestPage = () => {
 
   const handleTestSubmission = async () => {
     try {
-      // Update cheating log with user info
-      setCheatingLog((prevLog) => ({
-        ...prevLog,
-        username: userInfo.name,
-        email: userInfo.email,
-      }));
+      // Build cheating log payload locally to avoid async state race
+      const cheatingLogPayload = {
+        ...cheatingLog,
+        username: userInfo?.name || cheatingLog.username,
+        email: userInfo?.email || cheatingLog.email,
+      };
 
-      // Save cheating log
-      await saveCheatingLog(cheatingLog);
-      await saveCheatingLogMutation(cheatingLog).unwrap();
+      // Save cheating log once
+      await saveCheatingLogMutation(cheatingLogPayload).unwrap();
 
       // Calculate time taken in minutes using exam duration and remaining timer
       const total = examDurationInSeconds && examDurationInSeconds > 0 ? examDurationInSeconds : 400;
@@ -88,24 +88,9 @@ const TestPage = () => {
         timeTaken: timeTaken,
       };
 
-      // Save the result to the database using the submitExam mutation
-      const response = await fetch('/api/exams/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify(resultData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save exam result');
-      }
-
-      // Get the result from the backend response
-      const responseData = await response.json();
-      const resultPercentage = responseData?.result?.percentage || 0;
+      // Submit exam via RTK Query mutation (handles auth)
+      const responseData = await submitExam(resultData).unwrap();
+      const resultPercentage = responseData?.result?.percentage ?? 0;
 
       // Find and update the assignment for this exam
       if (assignments && assignments.length > 0) {
@@ -138,10 +123,6 @@ const TestPage = () => {
       [questionId]: selectedOptionId
     }));
   };
-
-  const saveCheatingLog = async (cheatingLog) => {
-    console.log(cheatingLog);
-  };
   return (
     <PageContainer title="TestPage" description="This is TestPage">
       <Box pt="3rem">
@@ -160,10 +141,11 @@ const TestPage = () => {
                 {isLoading ? (
                   <CircularProgress />
                 ) : (
-                  <MultipleChoiceQuestion 
-                    questions={data} 
+                  <MultipleChoiceQuestion
+                    questions={data}
                     saveUserTestScore={saveUserTestScore}
                     saveStudentAnswer={saveStudentAnswer}
+                    submitTest={handleTestSubmission}
                   />
                 )}
               </Box>

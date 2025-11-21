@@ -81,11 +81,35 @@ const deleteCheatingLog = asyncHandler(async (req, res) => {
     throw new Error('Invalid cheating log id');
   }
 
-  const deleted = await CheatingLog.findByIdAndDelete(id);
+  // Fetch the log first so we know which student's counters to adjust
+  const log = await CheatingLog.findById(id);
 
-  if (!deleted) {
+  if (!log) {
     res.status(404);
     throw new Error('Cheating log not found');
+  }
+
+  // Delete the log entry
+  await CheatingLog.findByIdAndDelete(id);
+
+  // Attempt to decrement the student's malpractice counters based on the log's email
+  try {
+    if (log.email) {
+      const user = await User.findOne({ email: log.email });
+      if (user && user.role === 'student') {
+        const current = Number(user.malpracticeCount || 0);
+        const next = Math.max(0, current - 1);
+        user.malpracticeCount = next;
+        // If count drops below the blocking threshold, ensure the student is unblocked
+        if (next < 2 && user.isBlocked) {
+          user.isBlocked = false;
+        }
+        await user.save();
+      }
+    }
+  } catch (e) {
+    // Log the error but do not fail the deletion response
+    console.error('Failed to adjust malpractice counters on delete', e);
   }
 
   res.status(200).json({ message: 'Cheating log deleted', id });

@@ -66,7 +66,7 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Submit exam answers
     submitExam: builder.mutation({
       query: (data) => ({
-        url: `/api/exams`,
+        url: `/api/exams/submit`,
         method: 'POST',
         body: data,
       }),

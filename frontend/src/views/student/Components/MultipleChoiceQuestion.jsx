@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 
-export default function MultipleChoiceQuestion({ questions, saveUserTestScore, saveStudentAnswer }) {
+export default function MultipleChoiceQuestion({ questions, saveUserTestScore, saveStudentAnswer, submitTest }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [score, setScore] = useState(0);
@@ -59,8 +59,10 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
     setSelectedOption(null);
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
+    } else if (submitTest) {
+      // if this was the last question, submit immediately
+      submitTest();
     }
-    // If it's the last question, the user will click "Finish Test" button in NumberOfQuestions component
   };
 
   return (
