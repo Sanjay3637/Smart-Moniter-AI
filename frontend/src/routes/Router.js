@@ -1,7 +1,6 @@
 import React, { lazy } from 'react';
 import { Navigate, Route, createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
 import Loadable from '../layouts/full/shared/loadable/Loadable';
-import { useSelector } from 'react-redux';
 
 /* ***Layouts**** */
 const BlankLayout = Loadable(lazy(() => import('../layouts/blank/BlankLayout')));
@@ -42,6 +41,8 @@ const AssignExamPage = Loadable(lazy(() => import('./../views/teacher/AssignExam
 const TeacherProfile = Loadable(lazy(() => import('./../views/teacher/ProfilePage')));
 const PrivateRoute = Loadable(lazy(() => import('src/views/authentication/PrivateRoute')));
 const TeacherRoute = Loadable(lazy(() => import('src/views/authentication/TeacherRoute')));
+const BlockStudentPage = Loadable(lazy(() => import('./../views/teacher/BlockStudentPage')));
+const UnblockStudentPage = Loadable(lazy(() => import('./../views/teacher/UnblockStudentPage')));
 
 const Router = createBrowserRouter(
   createRoutesFromElements(
@@ -68,6 +69,8 @@ const Router = createBrowserRouter(
             <Route path="/assign-exam" exact={true} element={<AssignExamPage />} />
             <Route path="/exam-log" exact={true} element={<ExamLogPage />} />
             <Route path="/teacher-profile" exact={true} element={<TeacherProfile />} />
+            <Route path="/block-student" exact={true} element={<BlockStudentPage />} />
+            <Route path="/unblock-student" exact={true} element={<UnblockStudentPage />} />
           </Route>
         </Route>
         <Route path="/" element={<ExamLayout />}>

@@ -21,7 +21,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useGetExamsQuery, useGetCategoriesQuery } from 'src/slices/examApiSlice';
 import { useGetCheatingLogsQuery } from 'src/slices/cheatingLogApiSlice';
 import { useDeleteCheatingLogMutation } from 'src/slices/cheatingLogApiSlice';
-import { useUnblockUserMutation } from 'src/slices/usersApiSlice';
 
 export default function CheatingTable() {
   const [filter, setFilter] = useState('');
@@ -34,7 +33,6 @@ export default function CheatingTable() {
   const { data: examsData } = useGetExamsQuery();
   const { data: cheatingLogsData, refetch: refetchCheatingLogs } = useGetCheatingLogsQuery(selectedExamId);
   const [deleteCheatingLog] = useDeleteCheatingLogMutation();
-  const [unblockUser] = useUnblockUserMutation();
 
   // Filter exams based on selected category
   useEffect(() => {
@@ -186,28 +184,7 @@ export default function CheatingTable() {
                         </IconButton>
                       </Tooltip>
                     </Grid>
-                    <Grid item>
-                      <Tooltip title="Unblock student">
-                        <IconButton
-                          color="primary"
-                          onClick={async () => {
-                            if (!log.email) {
-                              window.alert('Cannot unblock: missing student email in log');
-                              return;
-                            }
-                            try {
-                              await unblockUser({ email: log.email, resetCount: true }).unwrap();
-                              window.alert(`Unblocked ${log.username || log.email}`);
-                            } catch (err) {
-                              console.error('Unblock failed', err);
-                              window.alert('Failed to unblock student. See console for details.');
-                            }
-                          }}
-                        >
-                          <span style={{ fontSize: 12, fontWeight: 600 }}>UNBLOCK</span>
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
+                    {null}
                   </Grid>
                 </TableCell>
               </TableRow>

@@ -83,6 +83,18 @@ const Menuitems = [
     icon: IconUserPlus,
     href: '/exam-log',
   },
+  {
+    id: uniqueId(),
+    title: 'Block Student',
+    icon: IconUserCheck,
+    href: '/block-student',
+  },
+  {
+    id: uniqueId(),
+    title: 'Unblock Student',
+    icon: IconUserPlus,
+    href: '/unblock-student',
+  },
   // {
   //   id: uniqueId(),
   //   title: 'Exam  Sale comp',

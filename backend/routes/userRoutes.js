@@ -6,6 +6,7 @@ import {
   registerUser,
   updateUserProfile,
   unblockUser,
+  blockUser,
 } from "../controllers/userController.js";
 import { protect, teacherOnly, studentOnly } from "../middleware/authMiddleware.js";
 import { saveCheatingLog, getCheatingLogsByExamId, deleteCheatingLog } from "../controllers/cheatingLogController.js";
@@ -22,6 +23,8 @@ userRoutes.delete('/cheatingLogs/:id', protect, teacherOnly, deleteCheatingLog);
 
 // teacher-only unblock endpoint
 userRoutes.post('/unblock', protect, teacherOnly, unblockUser);
+// teacher-only block endpoint
+userRoutes.post('/block', protect, teacherOnly, blockUser);
 
 // protecting profile route using auth middleware protect
 userRoutes

@@ -42,6 +42,39 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Teacher-only: block a student by email or rollNumber
+const blockUser = asyncHandler(async (req, res) => {
+  const { email, rollNumber } = req.body || {};
+
+  if (!email && !rollNumber) {
+    res.status(400);
+    throw new Error('Provide email or rollNumber to block');
+  }
+
+  const query = email ? { email } : { rollNumber };
+  const user = await User.findOne(query);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  if (user.role !== 'student') {
+    res.status(400);
+    throw new Error('Only students can be blocked');
+  }
+
+  user.isBlocked = true;
+  await user.save();
+
+  res.status(200).json({
+    message: 'User blocked successfully',
+    _id: user._id,
+    email: user.email,
+    rollNumber: user.rollNumber,
+    malpracticeCount: user.malpracticeCount,
+    isBlocked: user.isBlocked,
+  });
+});
+
 const registerUser = asyncHandler(async (req, res) => {
   // Students: require rollNumber, email optional
   // Teachers: require email, rollNumber optional
@@ -199,4 +232,6 @@ export {
   getUserProfile,
   updateUserProfile,
   unblockUser,
+  // new export
+  blockUser,
 };

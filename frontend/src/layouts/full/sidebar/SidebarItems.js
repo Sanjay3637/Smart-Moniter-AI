@@ -18,7 +18,7 @@ const SidebarItems = () => {
           // Handle role-based visibility
           if (userInfo.role === 'student') {
             // Hide teacher-specific items from students
-            if (['Create Exam', 'Add Questions', 'Manage Exams', 'Assign Exam', 'Exam Logs'].includes(item.title)) {
+            if (['Create Exam', 'Add Questions', 'Manage Exams', 'Assign Exam', 'Exam Logs', 'Block Student', 'Unblock Student'].includes(item.title)) {
               return null;
             }
           } else if (userInfo.role === 'teacher') {
