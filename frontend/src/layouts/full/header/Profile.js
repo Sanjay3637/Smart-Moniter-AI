@@ -98,7 +98,7 @@ const Profile = () => {
           <ListItemText>My Account</ListItemText>
         </MenuItem>
         {userInfo?.role === 'student' && (
-          <MenuItem component={Link} to="/user/tasks">
+          <MenuItem component={Link} to="/my-tasks">
             <ListItemIcon>
               <IconListCheck width={20} />
             </ListItemIcon>

@@ -1,4 +1,4 @@
-# ProctoAI-MERN
+# Smart-Moniter
 
 ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutting-edge AI-based algorithms for online exams. This comprehensive system is designed to ensure the integrity and security of online examinations. The project leverages technologies such as React.js, Redux, Node.js, and TensorFlow.js to offer a feature-rich exam proctoring solution.
 
@@ -135,9 +135,92 @@ ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutti
 
   ---
 
-  If you want, I can also:
+  # Detailed Project Overview
 
-  - add a `.env.example` file,
-  - create a small `docs/API.md` listing all endpoints and request/response examples,
-  - or open a PR with these README changes committed (already applied).
+  ## What this project does
 
+  ProctoAI-MERN is an online examination platform with built-in client-side AI proctoring. It enables teachers to create and assign exams and students to take them within configured live windows while the app detects and logs potential cheating behaviors (face out-of-frame, multiple faces, device usage cues via vision models, etc.).
+
+  ## Core features
+
+  - **Authentication & Roles**
+    - Secure login with JWT httpOnly cookies.
+    - Two roles: `student`, `teacher`.
+
+  - **Teacher capabilities**
+    - Create exams with name, duration, total questions, live/dead dates, and optional category.
+    - Add questions to exams with answer options and correct answer marking.
+    - Assign exams to students; manage assignments and due dates.
+    - View cheating logs by exam to review flagged events.
+    - Manage categories for organizing exams.
+
+  - **Student experience**
+
+    - Dashboard listing available exams and categories.
+    - “My Tasks” view that fetches teacher assignments and lets students start an assigned exam.
+    - Exam taking UI with timer; on submit, answers are graded and results stored.
+    - “My Results” view to review past attempts and outcomes.
+
+  - **AI Proctoring (client-side)**
+    - Uses TensorFlow.js models (face/object) to detect suspicious behaviors.
+    - Events are POSTed to the backend and stored as cheating logs by exam.
+
+  ## Architecture at a glance
+
+  - **Frontend**: React + Redux Toolkit + MUI. TensorFlow.js in the browser for proctoring.
+  - **Backend**: Node.js + Express + MongoDB (Mongoose models).
+  - **Auth**: JWTs issued on login; stored in httpOnly cookies; protected routes via middleware.
+  - **CORS**: Controlled via `FRONTEND_URL`; credentials enabled.
+
+  ## Data models (key fields)
+
+  - **User**: role, name, email, password hash, status flags.
+  - **Exam**: `examName`, `totalQuestions`, `duration`, `liveDate`, `deadDate`, `examId` (UUID), `category`.
+  - **Question**: text, options[{ text, isCorrect }], `examId` link to exam.
+  - **Assignment**: maps exams to students with due dates and status.
+  - **Result**: one per student+exam; stores per-question answers, score, percentage, status, timeTaken.
+  - **CheatingLog**: records timestamped proctoring events per exam/user.
+
+  ## Important backend endpoints (snapshot)
+
+  - Auth: `POST /api/users`, `POST /api/users/auth`, `POST /api/users/logout`, `GET/PUT /api/users/profile`.
+  - Exams: mounted under `/api/users` in this codebase; controller exposes `GET /api/exams`, `POST /api/exams`, `DELETE /api/exams/:id`.
+  - Questions: `POST /api/users/exam/questions`, `GET /api/users/exam/questions/:examId`.
+  - Categories: `GET/POST /api/users/categories`, `DELETE /api/users/categories/:id`.
+  - Assignments: `GET/POST /api/users/assignments` (teacher), `GET /api/users/assignments/my-tasks` (student), `PUT/DELETE /api/users/assignments/:id`.
+  - Results: `GET /api/results/...` (see route file for details).
+  - Exam submission: `POST /api/exams/submit`.
+
+  See `backend/routes` and `backend/controllers` for full details.
+
+  ## Frontend routes (selected)
+
+  - Student: `/dashboard`, `/exam`, `/exam/category/:categoryId`, `/exam/:examId`, `/exam/:examId/:testId`, `/my-tasks`, `/my-results`, `/profile`.
+  - Teacher: `/create-exam`, `/add-questions`, `/manage-exams`, `/assign-exam`, `/exam-log`, `/teacher-profile`, `/block-student`, `/unblock-student`.
+  - Auth: `/auth/login`, `/auth/register`, `/auth/login-student`, `/auth/login-teacher`.
+
+  Note: From the profile avatar menu, “My Tasks” links to `/my-tasks`.
+
+  ## Key user flows
+
+  - **Teacher creates exam** → adds questions → assigns to students → monitors cheating logs.
+  - **Student checks My Tasks** → starts assigned exam within live window → client-side proctoring runs → submits → result is computed and stored.
+
+  ## Security & constraints
+
+  - Protected routes enforced by `protect`, `teacherOnly`, `studentOnly` middleware.
+  - CORS with credentials; frontend must send cookies when calling protected APIs.
+  - Compound index on Result ensures one result per student+exam.
+
+  ## Development tips
+
+  - Verify route prefixes: some exam routes are mounted under `/api/users` (by design in this repo).
+  - Keep `FRONTEND_URL` in `.env` consistent with the actual frontend origin during development.
+  - For TensorFlow.js models, ensure the browser has sufficient permissions (camera) and performance.
+
+  ## Roadmap ideas
+
+  - Add richer proctoring signals and thresholds.
+  - Add exportable reports for results and proctoring logs.
+  - Add e2e tests (Cypress/Playwright) and API tests (Jest + Supertest).
+  - Containerize with Docker and provide `docker-compose.yml` for easy local setup.
