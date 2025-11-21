@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40" role="img" aria-labelledby="title">
+  <title id="title">SmartMonitor - Mark</title>
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1D3FBF"/>
+      <stop offset="1" stop-color="#5C73DB"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34CAE0"/>
+      <stop offset="1" stop-color="#1E90C2"/>
+    </linearGradient>
+  </defs>
+  <!-- chat bubble / brain petals -->
+  <g transform="translate(8,5)">
+    <path d="M18,0 a14,14 0 0 1 14,14 a14,14 0 0 1-14,14 a14,14 0 0 1-14,-14 a14,14 0 0 1 14,-14z" fill="url(#g1)"/>
+    <ellipse cx="29" cy="14" rx="10.5" ry="14" fill="url(#g2)" opacity="0.9"/>
+    <!-- chat tail -->
+    <path d="M10,22 l0,8 7-6" fill="#1D3FBF" opacity="0.85"/>
+    <!-- inner circle with A -->
+    <circle cx="22" cy="14" r="6.6" fill="#ffffff"/>
+    <text x="22" y="17" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="700" fill="#163C7A">A</text>
+  </g>
+  <!-- wordmark kept concise for header -->
+  <text x="60" y="24" font-family="Montserrat, Roboto, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F2C5C">SmartMonitor</text>
+</svg>

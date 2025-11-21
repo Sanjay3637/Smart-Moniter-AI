@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ReactComponent as LogoDark } from 'src/assets/images/logos/dark-logo.svg';
+import { ReactComponent as LogoDark } from 'src/assets/images/logos/brand-mark.svg';
 import { styled } from '@mui/material';
 
 const LinkStyled = styled(Link)(() => ({
-  height: '70px',
+  height: '56px',
   width: '180px',
   overflow: 'hidden',
   display: 'block',
@@ -12,7 +12,7 @@ const LinkStyled = styled(Link)(() => ({
 const Logo = () => {
   return (
     <LinkStyled to="/">
-      <LogoDark height={70} />
+      <LogoDark height={48} />
     </LinkStyled>
   )
 };
