@@ -1,6 +1,6 @@
-# Smart-Moniter
+# Smart-MoniterAI
 
-ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutting-edge AI-based algorithms for online exams. This comprehensive system is designed to ensure the integrity and security of online examinations. The project leverages technologies such as React.js, Redux, Node.js, and TensorFlow.js to offer a feature-rich exam proctoring solution.
+Smart-MoniterAI is an Automated Exam Proctoring System (AEPS) developed with cutting-edge AI-based algorithms for online exams. This comprehensive system is designed to ensure the integrity and security of online examinations. The project leverages technologies such as React.js, Redux, Node.js, and TensorFlow.js to offer a feature-rich exam proctoring solution.
 
 
 ## Table of Contents
@@ -22,7 +22,7 @@ ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutti
   - [Unified Portal](#unified-portal)
 - [Project Screenshots](#project-screenshots)
   - [Login Page](#login-page)
-  # ProctoAI-MERN (Automated Exam Proctoring)
+  # Smart-MoniterAI (Automated Exam Proctoring)
 
   An online exam proctoring system implemented with the MERN stack and client-side AI (TensorFlow.js). This README reflects the current codebase layout and how to run and extend it.
 
@@ -139,7 +139,7 @@ ProctoAI-MERN is an Automated Exam Proctoring System (AEPS) developed with cutti
 
   ## What this project does
 
-  ProctoAI-MERN is an online examination platform with built-in client-side AI proctoring. It enables teachers to create and assign exams and students to take them within configured live windows while the app detects and logs potential cheating behaviors (face out-of-frame, multiple faces, device usage cues via vision models, etc.).
+  Smart-MoniterAI is an online examination platform with built-in client-side AI proctoring. It enables teachers to create and assign exams and students to take them within configured live windows while the app detects and logs potential cheating behaviors (face out-of-frame, multiple faces, device usage cues via vision models, etc.).
 
   ## Core features
 
