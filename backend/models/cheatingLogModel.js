@@ -10,6 +10,7 @@ const cheatingLogSchema = new mongoose.Schema(
     examId: { type: String, required: true },
     email: { type: String, required: true },
     username: { type: String, required: true },
+    rollNumber: { type: String },
   },
   {
     timestamps: true,

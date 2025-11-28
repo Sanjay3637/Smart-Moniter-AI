@@ -17,6 +17,20 @@ const saveCheatingLog = asyncHandler(async (req, res) => {
     email,
   } = req.body;
 
+  // Attempt to enrich with rollNumber if we can resolve the user
+  let rollNumber = undefined;
+  try {
+    if (req.user && req.user.role === 'student') {
+      const u = await User.findById(req.user._id);
+      rollNumber = u?.rollNumber;
+    } else if (email) {
+      const u = await User.findOne({ email });
+      rollNumber = u?.rollNumber;
+    }
+  } catch (e) {
+    // ignore enrichment failures
+  }
+
   const cheatingLog = new CheatingLog({
     noFaceCount,
     multipleFaceCount,
@@ -25,6 +39,7 @@ const saveCheatingLog = asyncHandler(async (req, res) => {
     examId,
     username,
     email,
+    rollNumber,
   });
 
   const savedLog = await cheatingLog.save();
@@ -66,7 +81,31 @@ const getCheatingLogsByExamId = asyncHandler(async (req, res) => {
   const examId = req.params.examId;
   const cheatingLogs = await CheatingLog.find({ examId });
 
-  res.status(200).json(cheatingLogs);
+  // If any entries are missing rollNumber, enrich from User collection by email
+  const emailsNeedingLookup = Array.from(
+    new Set(
+      cheatingLogs
+        .filter((log) => !log.rollNumber && log.email)
+        .map((log) => log.email)
+    )
+  );
+
+  let emailToRoll = {};
+  if (emailsNeedingLookup.length > 0) {
+    const users = await User.find({ email: { $in: emailsNeedingLookup } }).select('email rollNumber');
+    users.forEach((u) => {
+      emailToRoll[u.email] = u.rollNumber || undefined;
+    });
+  }
+
+  const enriched = cheatingLogs.map((log) => {
+    if (!log.rollNumber && log.email && emailToRoll[log.email]) {
+      return { ...log.toObject(), rollNumber: emailToRoll[log.email] };
+    }
+    return log;
+  });
+
+  res.status(200).json(enriched);
 });
 
 // @desc Delete a cheating log entry by ID

@@ -72,6 +72,22 @@ export const examApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Result'],
     }),
+    // Teacher: set/update exam access code (password)
+    updateExamAccessCode: builder.mutation({
+      query: ({ id, accessCode }) => ({
+        url: `${EXAMS_URL}/exam/${id}/access-code`,
+        method: 'PUT',
+        body: { accessCode },
+      }),
+    }),
+    // Student: validate access code before starting exam
+    validateExamAccess: builder.mutation({
+      query: ({ examId, code }) => ({
+        url: `${EXAMS_URL}/exam/${examId}/validate-access`,
+        method: 'POST',
+        body: { code },
+      }),
+    }),
   }),
 });
 
@@ -85,5 +101,7 @@ export const {
   useGetQuestionsQuery,
   useCreateQuestionMutation,
   useDeleteExamMutation,
+  useUpdateExamAccessCodeMutation,
+  useValidateExamAccessMutation,
   useSubmitExamMutation,
 } = examApiSlice;

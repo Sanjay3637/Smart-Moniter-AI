@@ -23,6 +23,10 @@ const examSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
+    // Optional access code set by teacher to gate exam start
+    accessCode: {
+      type: String,
+    },
     // Define examId field with UUID generation
     examId: {
       type: String,
