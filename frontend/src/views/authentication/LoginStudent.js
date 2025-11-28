@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Grid, Box, Card, Stack, Typography, Dialog, DialogTitle, DialogContent, Button } from '@mui/material';
 
 import PageContainer from 'src/components/container/PageContainer';
-import Logo from 'src/layouts/full/shared/logo/Logo';
 import AuthLogin from './auth/AuthLogin';
 
 import { useFormik } from 'formik';
@@ -71,12 +70,40 @@ const LoginStudent = () => {
   return (
     <PageContainer title="Student Login" description="Student login page">
       <Box sx={{ position: 'relative' }}>
-        <Grid container spacing={0} justifyContent="center" sx={{ height: '100vh' }}>
+        <Grid
+          container
+          spacing={0}
+          justifyContent="center"
+          sx={{
+            height: '100vh',
+            background: 'linear-gradient(180deg, #FFE29F 0%, #FFA99F 50%, #FFD6A5 100%)',
+            backgroundAttachment: 'fixed',
+          }}
+        >
           <Grid item xs={12} sm={12} lg={4} xl={3} display="flex" justifyContent="center" alignItems="center">
-            <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '500px' }}>
-              <Box display="flex" alignItems="center" justifyContent="center">
-                <Logo />
+            <Card
+              elevation={6}
+              sx={{
+                p: { xs: 3, sm: 4 },
+                zIndex: 1,
+                width: '100%',
+                maxWidth: '520px',
+                borderRadius: 4,
+                background: '#FFFFFF',
+              }}
+            >
+              <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
+                {/* Simple graduation cap illustration */}
+                <Box component="svg" width={96} height={72} viewBox="0 0 128 96">
+                  <path d="M64 8L8 32l56 24 56-24-56-24z" fill="#111827"/>
+                  <path d="M32 46v14c0 6 14 12 32 12s32-6 32-12V46L64 58 32 46z" fill="#334155"/>
+                  <circle cx="112" cy="44" r="5" fill="#f59e0b"/>
+                  <path d="M112 44v24" stroke="#f59e0b" strokeWidth="4"/>
+                </Box>
               </Box>
+              <Typography variant="body2" color="text.secondary" textAlign="center" mb={1}>
+                Student access — use your Roll Number and password
+              </Typography>
               <AuthLogin
                 formik={formik}
                 usernameFieldName="rollNumber"
