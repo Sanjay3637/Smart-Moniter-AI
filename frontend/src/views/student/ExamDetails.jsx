@@ -13,8 +13,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Chip,
+  Alert,
+  Box,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import { uniqueId } from 'lodash';
 import * as React from 'react';
@@ -22,6 +24,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useGetExamsQuery, useValidateExamAccessMutation } from 'src/slices/examApiSlice';
+import { useGetStudentTasksQuery } from 'src/slices/assignmentApiSlice';
 import { useSelector } from 'react-redux';
 import ExamDetailsView from '../teacher/ExamDetailsView';
 
@@ -34,6 +37,9 @@ const DescriptionAndInstructions = () => {
   const { data: exams } = useGetExamsQuery();
   const exam = exams?.find((e) => e._id === examId);
   const [validateAccess, { isLoading: validating }] = useValidateExamAccessMutation();
+  const { data: tasks } = useGetStudentTasksQuery();
+  const myAssign = tasks?.find?.((t) => t.examId === examId || t.examId === String(exam?._id) || t.examId === exam?.examId);
+  const attemptsLeft = myAssign ? Math.max((myAssign.maxAttempts || 1) - (myAssign.attemptsUsed || 0), 0) : undefined;
   
   const [certify, setCertify] = useState(false);
   const testId = uniqueId();
@@ -45,6 +51,10 @@ const DescriptionAndInstructions = () => {
   };
   
   const handleTest = () => {
+    if (attemptsLeft === 0) {
+      toast.error('Your attempts are over for this exam');
+      return;
+    }
     // If exam requires password, prompt first
     if (exam?.accessCode) {
       setOpenPwd(true);
@@ -64,21 +74,45 @@ const DescriptionAndInstructions = () => {
   };
 
   return (
-    <Card>
-      <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-        <Typography variant="h5" mb={1.5} fontWeight={700}>
+    <Card sx={{
+      borderRadius: 2,
+      boxShadow: 2,
+      border: '1px solid',
+      borderColor: 'divider',
+      maxWidth: 820,
+      mx: 'auto',
+      px: { xs: 2.5, md: 3.5 },
+      py: { xs: 3, md: 4 },
+    }}>
+      <CardContent sx={{ p: { xs: 2.5, md: 3.5 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+          <Box sx={{ width: 6, height: 20, bgcolor: 'primary.main', borderRadius: 1, mr: 1 }} />
+          <Typography variant="h5" fontWeight={700}>
           Description
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={2}>
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" mb={1.5}>
           Short MCQ-based assessment. Read the key rules below and start when ready.
         </Typography>
+        {attemptsLeft !== undefined && (
+          <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+            <Chip label={`Remaining: ${attemptsLeft}`} size="small" color={attemptsLeft > 0 ? 'success' : 'warning'} />
+            <Chip label={`Total: ${myAssign?.maxAttempts || 1}`} size="small" />
+          </Stack>
+        )}
+        {attemptsLeft === 0 && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Your attempts are over for this exam. Please contact your teacher if you believe this is a mistake.
+          </Alert>
+        )}
 
         <>
-          <Typography variant="h6" mb={1.5} mt={2} fontWeight={700}>
-            Test Instructions
-          </Typography>
-          <List>
-            <ol>
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, mb: 1.5 }}>
+            <Box sx={{ width: 6, height: 20, bgcolor: 'secondary.main', borderRadius: 1, mr: 1 }} />
+            <Typography variant="h6" fontWeight={700}>Test Instructions</Typography>
+          </Box>
+          <List sx={{ mt: 0 }}>
+            <ol style={{ margin: 0, paddingLeft: '18px' }}>
               <li>
                 <ListItemText>
                   <Typography variant="body2">Only MCQ questions.</Typography>
@@ -112,18 +146,19 @@ const DescriptionAndInstructions = () => {
             </ol>
           </List>
         </>
-        <Typography variant="h6" mb={1.5} mt={2} fontWeight={700}>
-          Confirmation
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, mb: 1.5 }}>
+          <Box sx={{ width: 6, height: 20, bgcolor: 'success.main', borderRadius: 1, mr: 1 }} />
+          <Typography variant="h6" fontWeight={700}>Confirmation</Typography>
+        </Box>
         <Typography variant="caption" color="text.secondary" mb={2} display="block">
           The test is proctored. Misconduct may lead to suspension or cancellation.
         </Typography>
-        <Stack direction="column" alignItems="center" spacing={3}>
+        <Stack direction="column" alignItems="center" spacing={2.5}>
           <FormControlLabel
             control={<Checkbox checked={certify} onChange={handleCertifyChange} color="primary" />}
             label="I certify that I have carefully read and agree to all of the instructions mentioned above"
           />
-          <Button variant="contained" color="primary" size="small" disabled={!certify} onClick={handleTest}>
+          <Button variant="contained" color="primary" size="small" disabled={!certify || attemptsLeft === 0} onClick={handleTest}>
             Start Test
           </Button>
         </Stack>
@@ -152,8 +187,7 @@ const DescriptionAndInstructions = () => {
   );
 };
 
-const imgUrl =
-  'https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80';
+// no external image; using gradient hero
 
 export default function ExamDetails() {
   const { userInfo } = useSelector((state) => state.auth);
@@ -165,26 +199,18 @@ export default function ExamDetails() {
 
   // Otherwise show the student test-taking view
   return (
-    <>
-      <Grid container sx={{ height: '100vh' }}>
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
-          sx={{
-            backgroundImage: `url(${imgUrl})`, // 'url(https://source.unsplash.com/random?wallpapers)',
-            backgroundRepeat: 'no-repeat',
-            backgroundColor: (t) =>
-              t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
-          <DescriptionAndInstructions />
-        </Grid>
-      </Grid>
-    </>
+    <Box component={Paper} elevation={6} square sx={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      backgroundImage: `radial-gradient(800px 400px at -10% -10%, rgba(255, 209, 102, 0.20), transparent),
+                        radial-gradient(600px 300px at 110% 0%, rgba(255, 102, 153, 0.18), transparent),
+                        linear-gradient(180deg, #fafafa 0%, #f3f5f9 100%)`,
+      backgroundBlendMode: 'screen, normal',
+    }}>
+      <Box sx={{ width: '100%', maxWidth: 980, mx: 'auto', px: { xs: 2, md: 4 }, py: { xs: 4, md: 6 } }}>
+        <DescriptionAndInstructions />
+      </Box>
+    </Box>
   );
 }

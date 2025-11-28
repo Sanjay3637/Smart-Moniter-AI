@@ -167,7 +167,8 @@ const TestPage = () => {
                     }}
                   >
                                   <NumberOfQuestions
-                                    questionLength={questions.length}
+                                    questions={questions}
+                                    answersMap={studentAnswers}
                                     submitTest={handleTestSubmission}
                                     examDurationInSeconds={examDurationInSeconds}
                                     onTimerChange={setTimer}
