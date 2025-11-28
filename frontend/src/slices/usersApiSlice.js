@@ -63,11 +63,27 @@ export const userApiSlice = apiSlice.injectEndpoints({
         body: data, // { email or rollNumber }
       }),
     }),
+    // Admin: get all users
+    getAllUsers: builder.query({
+      query: () => ({
+        url: `${USERS_URL}/all`,
+        method: 'GET',
+      }),
+      providesTags: ['Users'],
+    }),
+    // Admin: delete a user
+    deleteUser: builder.mutation({
+      query: (userId) => ({
+        url: `${USERS_URL}/${userId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Users'],
+    }),
   }),
 });
 
 // it specify convention to export them
 // like for mutation we have to add use + name + Mutation
 // like for query we have to add use + name + query
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation, useBlockUserMutation } =
+export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation, useBlockUserMutation, useGetAllUsersQuery, useDeleteUserMutation } =
   userApiSlice;

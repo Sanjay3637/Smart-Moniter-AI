@@ -11,10 +11,10 @@ const LinkStyled = styled(Link)(() => ({
 
 const Logo = () => {
   return (
-    <LinkStyled to="/">
+    <LinkStyled to="/admin">
       <LogoDark height={48} />
     </LinkStyled>
-  )
+  );
 };
 
 export default Logo;

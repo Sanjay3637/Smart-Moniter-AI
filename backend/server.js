@@ -4,6 +4,7 @@ import cors from "cors";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
+import session from "express-session";
 import examRoutes from "./routes/examRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
@@ -28,6 +29,21 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Session configuration (replaces JWT cookie auth)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev_session_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
 // Logging middleware
 app.use((req, res, next) => {

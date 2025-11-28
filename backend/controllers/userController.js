@@ -133,11 +133,18 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  res.cookie("jwt", "", {
-    httpOnly: true,
-    expires: new Date(0),
-  });
-  res.status(200).json({ message: " User logout User" });
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        res.status(500);
+        throw new Error("Failed to logout session");
+      }
+      res.clearCookie('connect.sid');
+      res.status(200).json({ message: "User logged out" });
+    });
+  } else {
+    res.status(200).json({ message: "User logged out" });
+  }
 });
 
 const getUserProfile = asyncHandler(async (req, res) => {
@@ -191,6 +198,26 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// Admin: get all users
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({}).select('-password');
+  res.status(200).json(users);
+});
+
+// Admin: delete a user
+const deleteUser = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  await User.findByIdAndDelete(userId);
+  res.status(200).json({ message: 'User deleted successfully' });
+});
+
 // Teacher-only: unblock a student and optionally reset malpracticeCount
 const unblockUser = asyncHandler(async (req, res) => {
   const { email, rollNumber, resetCount = true } = req.body || {};
@@ -232,6 +259,7 @@ export {
   getUserProfile,
   updateUserProfile,
   unblockUser,
-  // new export
   blockUser,
+  getAllUsers,
+  deleteUser,
 };

@@ -7,15 +7,26 @@ import {
   updateUserProfile,
   unblockUser,
   blockUser,
+  getAllUsers,
+  deleteUser,
 } from "../controllers/userController.js";
 import { protect, teacherOnly, studentOnly } from "../middleware/authMiddleware.js";
 import { saveCheatingLog, getCheatingLogsByExamId, deleteCheatingLog } from "../controllers/cheatingLogController.js";
 import { createExam, getExams } from "../controllers/examController.js";
 const userRoutes = express.Router();
+
+// Registration routes - public for admin page
 userRoutes.post("/", registerUser);
+userRoutes.post("/register", registerUser);
+
+// Auth routes (public)
 userRoutes.post("/auth", authUser);
 userRoutes.post("/logout", logoutUser);
-userRoutes.post("/register", registerUser);
+
+// Admin routes - public for admin page
+userRoutes.get('/all', getAllUsers);
+userRoutes.delete('/:id', deleteUser);
+
 // cheating logs (mounted under /api/users to match existing frontend slice)
 userRoutes.post('/cheatingLogs', protect, saveCheatingLog);
 userRoutes.get('/cheatingLogs/:examId', protect, teacherOnly, getCheatingLogsByExamId);

@@ -1,16 +1,8 @@
-import jwt from "jsonwebtoken";
-
 const generateToken = (res, userId) => {
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
-  });
-
-  res.cookie("jwt", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-    sameSite: "strict",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
+  // Store the authenticated user id in the session instead of issuing a JWT
+  if (res && res.req && res.req.session) {
+    res.req.session.userId = userId;
+  }
 };
 
 export default generateToken;

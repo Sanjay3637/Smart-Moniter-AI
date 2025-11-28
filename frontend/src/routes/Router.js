@@ -43,6 +43,9 @@ const PrivateRoute = Loadable(lazy(() => import('src/views/authentication/Privat
 const TeacherRoute = Loadable(lazy(() => import('src/views/authentication/TeacherRoute')));
 const BlockStudentPage = Loadable(lazy(() => import('./../views/teacher/BlockStudentPage')));
 const UnblockStudentPage = Loadable(lazy(() => import('./../views/teacher/UnblockStudentPage')));
+const AdminPage = Loadable(lazy(() => import('./../views/admin/AdminPage')));
+const AdminRoute = Loadable(lazy(() => import('../views/authentication/AdminRoute')));
+const AdminLogin = Loadable(lazy(() => import('../views/authentication/AdminLogin')));
 
 const Router = createBrowserRouter(
   createRoutesFromElements(
@@ -84,13 +87,21 @@ const Router = createBrowserRouter(
         </Route>
       </Route>
 
+      {/* Admin page - protected by AdminRoute */}
+      <Route path="/admin" element={<AdminRoute />}>
+        <Route element={<BlankLayout />}>
+          <Route index element={<AdminPage />} />
+        </Route>
+      </Route>
+
       {/* Authentication layout */}
       <Route path="/auth" element={<BlankLayout />}>
         <Route path="404" element={<Error />} />
-  <Route path="/auth/register" element={<Register />} />
-  <Route path="/auth/login" element={<Login />} />
-  <Route path="/auth/login-student" element={<LoginStudent />} />
-  <Route path="/auth/login-teacher" element={<LoginTeacher />} />
+
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/login-student" element={<LoginStudent />} />
+        <Route path="/auth/login-teacher" element={<LoginTeacher />} />
+        <Route path="/auth/admin-login" element={<AdminLogin />} />
         {/* <Route path="*" element={<Navigate to="/auth/404" />} /> */}
       </Route>
     </>,

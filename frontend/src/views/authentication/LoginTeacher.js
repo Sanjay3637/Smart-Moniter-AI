@@ -81,12 +81,6 @@ const LoginTeacher = () => {
                 }
                 subtitle={
                   <Stack direction="row" spacing={1} justifyContent="center" mt={3}>
-                    <Typography color="textSecondary" variant="h6" fontWeight="500">
-                      New to Modernize?
-                    </Typography>
-                    <Typography component={Link} to="/auth/register?role=teacher" fontWeight="500" sx={{ textDecoration: 'none', color: 'primary.main' }}>
-                      Create an account
-                    </Typography>
                     {isLoading && <Loader />}
                   </Stack>
                 }
