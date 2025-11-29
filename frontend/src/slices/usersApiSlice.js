@@ -79,11 +79,37 @@ export const userApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Users'],
     }),
+    // Teacher-only: get student by email or rollNumber
+    getStudentByIdentifier: builder.query({
+      query: ({ email, rollNumber }) => {
+        const params = new URLSearchParams();
+        if (email) params.set('email', email);
+        if (rollNumber) params.set('rollNumber', rollNumber);
+        const qs = params.toString();
+        return {
+          url: `${USERS_URL}/student${qs ? `?${qs}` : ''}`,
+          method: 'GET',
+        };
+      },
+    }),
+    // Teacher-only: get student's full history
+    getStudentHistory: builder.query({
+      query: ({ email, rollNumber }) => {
+        const params = new URLSearchParams();
+        if (email) params.set('email', email);
+        if (rollNumber) params.set('rollNumber', rollNumber);
+        const qs = params.toString();
+        return {
+          url: `${USERS_URL}/student/history${qs ? `?${qs}` : ''}`,
+          method: 'GET',
+        };
+      },
+    }),
   }),
 });
 
 // it specify convention to export them
 // like for mutation we have to add use + name + Mutation
 // like for query we have to add use + name + query
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation, useBlockUserMutation, useGetAllUsersQuery, useDeleteUserMutation } =
+export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation, useBlockUserMutation, useGetAllUsersQuery, useDeleteUserMutation, useGetStudentByIdentifierQuery, useLazyGetStudentByIdentifierQuery, useGetStudentHistoryQuery, useLazyGetStudentHistoryQuery } =
   userApiSlice;

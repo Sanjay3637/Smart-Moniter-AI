@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid';
 import Avatar from '@mui/material/Avatar';
+import questions from './questionData';
+import BlankCard from 'src/components/shared/BlankCard';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import Countdown from 'react-countdown';
-const NumberOfQuestions = ({ questions = [], answersMap = {}, submitTest, examDurationInSeconds, onTimerChange }) => {
-  const totalQuestions = Array.isArray(questions) ? questions.length : 0;
+const NumberOfQuestions = ({ questionLength, submitTest, examDurationInSeconds, onTimerChange }) => {
+  const totalQuestions = questionLength; //questions.length;
   // Generate an array of question numbers from 1 to totalQuestions
   const questionNumbers = Array.from({ length: totalQuestions }, (_, index) => index + 1);
   const handleQuestionButtonClick = (questionNumber) => {
@@ -80,29 +82,23 @@ const NumberOfQuestions = ({ questions = [], answersMap = {}, submitTest, examDu
           {rows.map((row, rowIndex) => (
             <Grid key={rowIndex} item xs={12}>
               <Stack direction="row" alignItems="center" justifyContent="start">
-                {row.map((questionNumber) => {
-                  const q = questions[questionNumber - 1];
-                  const isAnswered = q && answersMap && !!answersMap[q._id];
-                  const bg = isAnswered ? '#22c55e' : '#ef4444'; // green or red
-                  return (
-                    <Avatar
-                      key={questionNumber}
-                      variant="rounded"
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        fontSize: '20px',
-                        cursor: 'pointer',
-                        margin: '3px',
-                        background: bg,
-                        color: '#fff',
-                      }}
-                      onClick={() => handleQuestionButtonClick(questionNumber)}
-                    >
-                      {questionNumber}
-                    </Avatar>
-                  );
-                })}
+                {row.map((questionNumber) => (
+                  <Avatar
+                    key={questionNumber}
+                    variant="rounded"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                      margin: '3px',
+                      background: '#ccc',
+                    }}
+                    onClick={() => handleQuestionButtonClick(questionNumber)}
+                  >
+                    {questionNumber}
+                  </Avatar>
+                ))}
               </Stack>
             </Grid>
           ))}

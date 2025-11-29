@@ -13,8 +13,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Chip,
-  Alert,
   Box,
 } from '@mui/material';
 import Paper from '@mui/material/Paper';
@@ -24,7 +22,6 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useGetExamsQuery, useValidateExamAccessMutation } from 'src/slices/examApiSlice';
-import { useGetStudentTasksQuery } from 'src/slices/assignmentApiSlice';
 import { useSelector } from 'react-redux';
 import ExamDetailsView from '../teacher/ExamDetailsView';
 
@@ -37,9 +34,6 @@ const DescriptionAndInstructions = () => {
   const { data: exams } = useGetExamsQuery();
   const exam = exams?.find((e) => e._id === examId);
   const [validateAccess, { isLoading: validating }] = useValidateExamAccessMutation();
-  const { data: tasks } = useGetStudentTasksQuery();
-  const myAssign = tasks?.find?.((t) => t.examId === examId || t.examId === String(exam?._id) || t.examId === exam?.examId);
-  const attemptsLeft = myAssign ? Math.max((myAssign.maxAttempts || 1) - (myAssign.attemptsUsed || 0), 0) : undefined;
   
   const [certify, setCertify] = useState(false);
   const testId = uniqueId();
@@ -51,10 +45,6 @@ const DescriptionAndInstructions = () => {
   };
   
   const handleTest = () => {
-    if (attemptsLeft === 0) {
-      toast.error('Your attempts are over for this exam');
-      return;
-    }
     // If exam requires password, prompt first
     if (exam?.accessCode) {
       setOpenPwd(true);
@@ -91,20 +81,9 @@ const DescriptionAndInstructions = () => {
           Description
           </Typography>
         </Box>
-        <Typography variant="body2" color="text.secondary" mb={1.5}>
+        <Typography variant="body2" color="text.secondary" mb={2}>
           Short MCQ-based assessment. Read the key rules below and start when ready.
         </Typography>
-        {attemptsLeft !== undefined && (
-          <Stack direction="row" spacing={1} alignItems="center" mb={2}>
-            <Chip label={`Remaining: ${attemptsLeft}`} size="small" color={attemptsLeft > 0 ? 'success' : 'warning'} />
-            <Chip label={`Total: ${myAssign?.maxAttempts || 1}`} size="small" />
-          </Stack>
-        )}
-        {attemptsLeft === 0 && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Your attempts are over for this exam. Please contact your teacher if you believe this is a mistake.
-          </Alert>
-        )}
 
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, mb: 1.5 }}>
@@ -158,7 +137,7 @@ const DescriptionAndInstructions = () => {
             control={<Checkbox checked={certify} onChange={handleCertifyChange} color="primary" />}
             label="I certify that I have carefully read and agree to all of the instructions mentioned above"
           />
-          <Button variant="contained" color="primary" size="small" disabled={!certify || attemptsLeft === 0} onClick={handleTest}>
+          <Button variant="contained" color="primary" size="small" disabled={!certify} onClick={handleTest}>
             Start Test
           </Button>
         </Stack>

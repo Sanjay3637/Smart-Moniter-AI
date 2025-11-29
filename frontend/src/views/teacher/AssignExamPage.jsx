@@ -152,7 +152,7 @@ const AssignExamPage = () => {
           <Grid item xs={12} md={5}>
             <DashboardCard title="Create Assignment">
               <form onSubmit={handleSubmit}>
-                <Stack spacing={3}>
+                <Stack spacing={2.5}>
                   <TextField
                     select
                     fullWidth
@@ -160,6 +160,7 @@ const AssignExamPage = () => {
                     name="categoryId"
                     value={selectedCategoryId}
                     onChange={handleChange}
+                    size="small"
                   >
                     {categories?.map((cat) => (
                       <MenuItem key={cat._id} value={cat._id}>
@@ -177,6 +178,7 @@ const AssignExamPage = () => {
                     onChange={handleChange}
                     required
                     disabled={examsLoading || filteredExams.length === 0}
+                    size="small"
                   >
                     {filteredExams?.map((exam) => (
                       <MenuItem key={exam._id} value={exam._id}>
@@ -196,6 +198,7 @@ const AssignExamPage = () => {
                     onChange={handleChange}
                     placeholder="e.g. 2021CS101"
                     required
+                    size="small"
                   />
 
                   <TextField
@@ -209,6 +212,7 @@ const AssignExamPage = () => {
                       shrink: true,
                     }}
                     required
+                    size="small"
                   />
 
                   <Button
@@ -232,7 +236,17 @@ const AssignExamPage = () => {
               {assignments && assignments.length > 0 ? (
                 <Stack spacing={2}>
                   {assignments.map((assignment) => (
-                    <Paper key={assignment._id} elevation={2} sx={{ p: 2 }}>
+                    <Paper
+                      key={assignment._id}
+                      variant="outlined"
+                      sx={{
+                        p: 2,
+                        borderColor: 'grey.500',
+                        borderRadius: 2,
+                        transition: 'background-color 0.2s ease',
+                        '&:hover': { backgroundColor: 'rgba(90,106,133,0.04)' },
+                      }}
+                    >
                       <Box display="flex" justifyContent="space-between" alignItems="start">
                         <Box flexGrow={1}>
                           <Typography variant="h6" fontWeight={600} mb={1}>

@@ -41,17 +41,6 @@ const assignmentSchema = mongoose.Schema(
       enum: ['pending', 'completed', 'overdue'],
       default: 'pending',
     },
-    // attempt controls per student per exam
-    maxAttempts: {
-      type: Number,
-      default: 1,
-      min: 1,
-    },
-    attemptsUsed: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     completedAt: {
       type: Date,
     },

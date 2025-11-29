@@ -296,9 +296,28 @@ const UsersGrid = ({ users, tab, query, onAskDelete }) => {
                 initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
                 disableRowSelectionOnClick
                 density="compact"
+                showCellVerticalBorder
+                showColumnVerticalBorder
                 sx={{
                     borderRadius: 1,
-                    '& .MuiDataGrid-columnHeaders': { backgroundColor: 'action.hover' },
+                    border: 1,
+                    borderColor: 'grey.500',
+                    '& .MuiDataGrid-columnHeaders': {
+                        backgroundColor: 'action.hover',
+                        borderBottom: '1px solid',
+                        borderColor: 'grey.500',
+                    },
+                    '& .MuiDataGrid-row': {
+                        borderBottom: '1px solid',
+                        borderColor: 'grey.500',
+                    },
+                    '& .MuiDataGrid-cell': {
+                        borderRight: '1px solid',
+                        borderColor: 'grey.500',
+                    },
+                    '& .MuiDataGrid-cell:last-of-type': {
+                        borderRight: 'none',
+                    },
                 }}
             />
         </Box>

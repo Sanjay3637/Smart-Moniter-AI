@@ -1,6 +1,11 @@
 import asyncHandler from "express-async-handler";
 import User from "./../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
+import CheatingLog from "../models/cheatingLogModel.js";
+import Exam from "../models/examModel.js";
+import Category from "../models/categoryModel.js";
+import mongoose from "mongoose";
+import UserActionLog from "../models/userActionLogModel.js";
 
 const authUser = asyncHandler(async (req, res) => {
   // Authenticate using rollNumber OR email + password.
@@ -42,6 +47,114 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Teacher-only: full student history (cheating logs + action logs + summary)
+const getStudentHistory = asyncHandler(async (req, res) => {
+  const { email, rollNumber } = req.query || {};
+
+  if (!email && !rollNumber) {
+    res.status(400);
+    throw new Error('Provide email or rollNumber to lookup history');
+  }
+
+  const query = email ? { email } : { rollNumber };
+  const user = await User.findOne(query).select('-password');
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  if (user.role !== 'student') {
+    res.status(400);
+    throw new Error('Only students can be looked up');
+  }
+
+  const rn = user.rollNumber;
+  const cheatingLogs = await CheatingLog.find({
+    $or: [
+      { rollNumber: rn },
+      ...(user.email ? [{ email: user.email }] : []),
+    ],
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Resolve exam names for display; logs may store custom examId (uuid) OR Exam _id
+  const rawExamRefs = [...new Set(cheatingLogs.map((l) => l.examId).filter(Boolean))];
+  let examNameMap = {};
+  let examCategoryIdMap = {};
+  if (rawExamRefs.length) {
+    const objectIdRefs = rawExamRefs.filter((x) => mongoose.Types.ObjectId.isValid(String(x))).map((x) => new mongoose.Types.ObjectId(String(x)));
+    const nonObjectIdRefs = rawExamRefs.filter((x) => !mongoose.Types.ObjectId.isValid(String(x)));
+
+    const examsByUuid = nonObjectIdRefs.length
+      ? await Exam.find({ examId: { $in: nonObjectIdRefs } }).select('examId examName category').lean()
+      : [];
+    const examsByObjectId = objectIdRefs.length
+      ? await Exam.find({ _id: { $in: objectIdRefs } }).select('_id examId examName category').lean()
+      : [];
+
+    const allExams = [...examsByUuid, ...examsByObjectId];
+    for (const e of allExams) {
+      if (e.examId) {
+        examNameMap[e.examId] = e.examName;
+        examCategoryIdMap[e.examId] = e.category ? String(e.category) : undefined;
+      }
+      if (e._id) {
+        const key = String(e._id);
+        examNameMap[key] = e.examName;
+        examCategoryIdMap[key] = e.category ? String(e.category) : undefined;
+      }
+    }
+
+    const categoryIds = [...new Set(Object.values(examCategoryIdMap).filter(Boolean))];
+    const categories = categoryIds.length
+      ? await Category.find({ _id: { $in: categoryIds } }).select('name').lean()
+      : [];
+    const categoryNameMap = Object.fromEntries(categories.map((c) => [String(c._id), c.name]));
+
+    var cheatingLogsWithNames = cheatingLogs.map((l) => {
+      const ref = String(l.examId);
+      const catId = examCategoryIdMap[ref];
+      return {
+        ...l,
+        examName: examNameMap[ref] || undefined,
+        categoryName: catId ? categoryNameMap[catId] : undefined,
+      };
+    });
+  } else {
+    var cheatingLogsWithNames = cheatingLogs.map((l) => ({ ...l }));
+  }
+
+  const actionLogs = await UserActionLog.find({ rollNumber: rn })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const summary = cheatingLogsWithNames.reduce(
+    (acc, l) => {
+      acc.noFaceCount += l.noFaceCount || 0;
+      acc.multipleFaceCount += l.multipleFaceCount || 0;
+      acc.cellPhoneCount += l.cellPhoneCount || 0;
+      acc.prohibitedObjectCount += l.prohibitedObjectCount || 0;
+      acc.events += 1;
+      return acc;
+    },
+    { noFaceCount: 0, multipleFaceCount: 0, cellPhoneCount: 0, prohibitedObjectCount: 0, events: 0 }
+  );
+
+  res.status(200).json({
+    student: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      rollNumber: user.rollNumber,
+      malpracticeCount: user.malpracticeCount,
+      isBlocked: user.isBlocked,
+    },
+    summary,
+    actionLogs,
+    cheatingLogs: cheatingLogsWithNames,
+  });
+});
+
 // Teacher-only: block a student by email or rollNumber
 const blockUser = asyncHandler(async (req, res) => {
   const { email, rollNumber } = req.body || {};
@@ -64,6 +177,14 @@ const blockUser = asyncHandler(async (req, res) => {
 
   user.isBlocked = true;
   await user.save();
+
+  try {
+    await UserActionLog.create({
+      userId: user._id,
+      rollNumber: user.rollNumber,
+      action: 'BLOCK',
+    });
+  } catch (e) {}
 
   res.status(200).json({
     message: 'User blocked successfully',
@@ -218,6 +339,36 @@ const deleteUser = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'User deleted successfully' });
 });
 
+// Teacher-only: fetch a student's info by email or rollNumber
+const getStudentByIdentifier = asyncHandler(async (req, res) => {
+  const { email, rollNumber } = req.query || {};
+
+  if (!email && !rollNumber) {
+    res.status(400);
+    throw new Error('Provide email or rollNumber to lookup');
+  }
+
+  const query = email ? { email } : { rollNumber };
+  const user = await User.findOne(query).select('-password');
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  if (user.role !== 'student') {
+    res.status(400);
+    throw new Error('Only students can be looked up');
+  }
+
+  res.status(200).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    rollNumber: user.rollNumber,
+    malpracticeCount: user.malpracticeCount,
+    isBlocked: user.isBlocked,
+  });
+});
+
 // Teacher-only: unblock a student and optionally reset malpracticeCount
 const unblockUser = asyncHandler(async (req, res) => {
   const { email, rollNumber, resetCount = true } = req.body || {};
@@ -242,6 +393,15 @@ const unblockUser = asyncHandler(async (req, res) => {
   if (resetCount) user.malpracticeCount = 0;
   await user.save();
 
+  try {
+    await UserActionLog.create({
+      userId: user._id,
+      rollNumber: user.rollNumber,
+      action: 'UNBLOCK',
+      metadata: { resetCount },
+    });
+  } catch (e) {}
+
   res.status(200).json({
     message: 'User unblocked successfully',
     _id: user._id,
@@ -262,4 +422,6 @@ export {
   blockUser,
   getAllUsers,
   deleteUser,
+  getStudentByIdentifier,
+  getStudentHistory,
 };

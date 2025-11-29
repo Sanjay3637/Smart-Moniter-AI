@@ -62,10 +62,114 @@ const baselightTheme = createTheme({
       hoverOpacity: 0.02,
       hover: '#f6f9fc',
     },
-    divider: '#e5eaef',
+    divider: '#5A6A85',
   },
   typography,
-  shadows
+  shadows,
+  shape: {
+    borderRadius: 10,
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          border: '1px solid',
+          borderColor: '#5A6A85',
+          borderRadius: 10,
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          '&:hover': {
+            boxShadow: '0 6px 18px rgba(0,0,0,0.08)',
+            transform: 'translateY(-2px)'
+          }
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+        contained: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+            filter: 'brightness(0.95)'
+          },
+        },
+        outlined: {
+          backgroundColor: 'rgba(90,106,133,0.04)',
+          '&:hover': {
+            backgroundColor: 'rgba(90,106,133,0.08)'
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        outlined: {
+          borderColor: '#5A6A85',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        outlined: {
+          borderColor: '#5A6A85',
+          borderRadius: 9999,
+          backgroundColor: 'rgba(90,106,133,0.04)',
+          '&:hover': {
+            backgroundColor: 'rgba(90,106,133,0.08)'
+          }
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        notchedOutline: {
+          borderColor: '#5A6A85',
+        },
+        root: {
+          '& .MuiOutlinedInput-input': {
+            paddingTop: 12,
+            paddingBottom: 12,
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#5D87FF',
+            borderWidth: 2,
+          },
+        },
+      },
+    },
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          border: '1px solid #5A6A85',
+          borderRadius: 10,
+          // zebra striping
+          '& .MuiDataGrid-row:nth-of-type(odd)': {
+            backgroundColor: 'rgba(90,106,133,0.03)'
+          },
+        },
+        columnHeaders: {
+          borderBottom: '1px solid #5A6A85',
+        },
+        row: {
+          borderBottom: '1px solid #5A6A85',
+          '&:hover': {
+            backgroundColor: 'rgba(90,106,133,0.06)'
+          }
+        },
+        cell: {
+          borderRight: '1px solid #5A6A85',
+        },
+      },
+    },
+  }
 },
   
 );

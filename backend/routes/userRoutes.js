@@ -9,6 +9,8 @@ import {
   blockUser,
   getAllUsers,
   deleteUser,
+  getStudentByIdentifier,
+  getStudentHistory,
 } from "../controllers/userController.js";
 import { protect, teacherOnly, studentOnly } from "../middleware/authMiddleware.js";
 import { saveCheatingLog, getCheatingLogsByExamId, deleteCheatingLog } from "../controllers/cheatingLogController.js";
@@ -36,6 +38,10 @@ userRoutes.delete('/cheatingLogs/:id', protect, teacherOnly, deleteCheatingLog);
 userRoutes.post('/unblock', protect, teacherOnly, unblockUser);
 // teacher-only block endpoint
 userRoutes.post('/block', protect, teacherOnly, blockUser);
+// teacher-only: lookup student by email/rollNumber
+userRoutes.get('/student', protect, teacherOnly, getStudentByIdentifier);
+// teacher-only: student's full history
+userRoutes.get('/student/history', protect, teacherOnly, getStudentHistory);
 
 // protecting profile route using auth middleware protect
 userRoutes

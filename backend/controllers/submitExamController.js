@@ -2,7 +2,6 @@ import asyncHandler from 'express-async-handler';
 import Exam from '../models/examModel.js';
 import Result from '../models/resultModel.js';
 import Question from '../models/quesModel.js';
-import Assignment from '../models/assignmentModel.js';
 
 // @desc    Submit exam answers
 // @route   POST /api/exams/submit
@@ -17,24 +16,6 @@ export const submitExam = asyncHandler(async (req, res) => {
   if (!exam) {
     res.status(404);
     throw new Error('Exam not found');
-  }
-
-  // Ensure assignment exists and attempts remain (support various examId formats)
-  const assign = await Assignment.findOne({
-    studentRoll: req.user.rollNumber,
-    $or: [
-      { examId: examId },
-      { examId: String(exam._id) },
-      { examId: exam.examId },
-    ],
-  });
-  if (!assign) {
-    res.status(403);
-    throw new Error('This exam is not assigned to you');
-  }
-  if (assign.attemptsUsed >= assign.maxAttempts) {
-    res.status(403);
-    throw new Error('Attempt limit reached');
   }
 
   // Fetch questions that belong to this exam. Questions store examId as a string.
@@ -88,18 +69,6 @@ export const submitExam = asyncHandler(async (req, res) => {
     },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
-
-  // After saving result, increment attemptsUsed (capped at max)
-  try {
-    assign.attemptsUsed = Math.min(assign.attemptsUsed + 1, assign.maxAttempts);
-    if (assign.attemptsUsed >= assign.maxAttempts) {
-      assign.completedAt = assign.completedAt || new Date();
-      assign.status = 'completed';
-    }
-    await assign.save();
-  } catch (e) {
-    // do not block result response on assignment save error
-  }
 
   // Populate exam details in the response
   const populatedResult = await Result.findById(result._id)

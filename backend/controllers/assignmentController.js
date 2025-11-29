@@ -6,7 +6,7 @@ import User from "../models/userModel.js";
 // @route POST /api/users/assignments
 // @access Private (teacher only)
 const createAssignment = asyncHandler(async (req, res) => {
-  const { examId, examName, studentRoll, dueDate, maxAttempts } = req.body;
+  const { examId, examName, studentRoll, dueDate } = req.body;
 
   // Find student by roll number
   const student = await User.findOne({ rollNumber: studentRoll });
@@ -43,7 +43,6 @@ const createAssignment = asyncHandler(async (req, res) => {
     assignedByEmail: req.user.email,
     dueDate,
     status: 'pending',
-    maxAttempts: Number(maxAttempts) > 0 ? Number(maxAttempts) : 1,
   });
 
   const createdAssignment = await assignment.save();
@@ -88,25 +87,11 @@ const updateAssignment = asyncHandler(async (req, res) => {
     throw new Error("Assignment not found");
   }
 
-  const { status, score, completedAt, maxAttempts, attemptsUsed } = req.body;
+  const { status, score, completedAt } = req.body;
 
   if (status) assignment.status = status;
   if (score !== undefined) assignment.score = score;
   if (completedAt) assignment.completedAt = completedAt;
-  if (maxAttempts !== undefined) {
-    const m = Number(maxAttempts);
-    if (!Number.isNaN(m) && m >= 1) {
-      assignment.maxAttempts = m;
-      // keep attemptsUsed within new cap
-      if (assignment.attemptsUsed > m) assignment.attemptsUsed = m;
-    }
-  }
-  if (attemptsUsed !== undefined) {
-    const a = Number(attemptsUsed);
-    if (!Number.isNaN(a) && a >= 0) {
-      assignment.attemptsUsed = Math.min(a, assignment.maxAttempts || 1);
-    }
-  }
 
   const updatedAssignment = await assignment.save();
   res.status(200).json(updatedAssignment);

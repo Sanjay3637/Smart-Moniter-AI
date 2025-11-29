@@ -85,14 +85,7 @@ export const validateExamAccess = asyncHandler(async (req, res) => {
 
   // If no accessCode set for exam, allow implicitly
   if (!exam.accessCode) {
-    // set a short-lived cookie to indicate access granted for this exam
-    res.cookie(`examAccess_${examId}`, '1', {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 2 * 60 * 60 * 1000, // 2 hours
-      path: '/',
-    });
+    req.session.examAccess = { ...(req.session.examAccess || {}), [examId]: true };
     return res.status(200).json({ ok: true, message: 'Access granted (no code required)' });
   }
 
@@ -101,12 +94,6 @@ export const validateExamAccess = asyncHandler(async (req, res) => {
     throw new Error('Invalid access code');
   }
 
-  res.cookie(`examAccess_${examId}`, '1', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 2 * 60 * 60 * 1000, // 2 hours
-    path: '/',
-  });
+  req.session.examAccess = { ...(req.session.examAccess || {}), [examId]: true };
   res.status(200).json({ ok: true });
 });

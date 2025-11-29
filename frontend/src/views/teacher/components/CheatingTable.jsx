@@ -188,9 +188,28 @@ export default function CheatingTable() {
           columnVisibilityModel={isSmDown ? { prohibitedObjectCount: false, cellPhoneCount: true } : undefined}
           rowHeight={isSmDown ? 52 : 64}
           columnHeaderHeight={isSmDown ? 52 : 60}
+          showCellVerticalBorder
+          showColumnVerticalBorder
           sx={{
-            '& .MuiDataGrid-columnHeaders': { backgroundColor: 'action.hover' },
-            '& .MuiDataGrid-cell': { py: isSmDown ? 1 : 1.5 },
+            border: 1,
+            borderColor: 'grey.500',
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: 'action.hover',
+              borderBottom: '1px solid',
+              borderColor: 'grey.500',
+            },
+            '& .MuiDataGrid-row': {
+              borderBottom: '1px solid',
+              borderColor: 'grey.500',
+            },
+            '& .MuiDataGrid-cell': {
+              py: isSmDown ? 1 : 1.5,
+              borderRight: '1px solid',
+              borderColor: 'grey.500',
+            },
+            '& .MuiDataGrid-cell:last-of-type': {
+              borderRight: 'none',
+            },
           }}
         />
       </Paper>
