@@ -139,8 +139,23 @@ const MyResultsPage = () => {
             </Card>
           ) : (
             <Card>
-              <TableContainer>
-                <Table>
+              <TableContainer component={Card} variant="outlined" sx={{ border: 1, borderColor: 'grey.300', borderRadius: 2 }}>
+                <Table size="small" stickyHeader sx={{
+                  '& thead th': {
+                    backgroundColor: 'action.hover',
+                    fontWeight: 600,
+                    borderBottom: '1px solid',
+                    borderColor: 'grey.300',
+                  },
+                  '& td, & th': {
+                    borderBottom: '1px solid',
+                    borderColor: 'grey.300',
+                  },
+                  // no vertical cell dividers for a cleaner look
+                  '& tbody tr:hover': {
+                    backgroundColor: 'rgba(90,106,133,0.04)'
+                  },
+                }}>
                   <TableHead>
                     <TableRow>
                 <TableCell>Exam</TableCell>
@@ -173,7 +188,7 @@ const MyResultsPage = () => {
                         const status = result.status || (result.percentage >= 60 ? 'Passed' : 'Failed');
                         
                         return (
-                          <TableRow key={result._id} hover>
+                          <TableRow key={result._id} hover sx={{ '&:hover': { backgroundColor: 'rgba(90,106,133,0.04)' } }}>
                             <TableCell>
                               <Typography variant="subtitle2">
                                 {examName}

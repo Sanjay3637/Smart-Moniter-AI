@@ -23,6 +23,10 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
     }
   }, [currentQuestion, questions]);
 
+  // helpers to normalize option fields
+  const getOptionKey = (option, idx) => option?._id || option?.id || String(idx);
+  const getOptionLabel = (option) => option?.optionText || option?.text || '';
+
   // Check if questions exist and have data
   if (!questions || questions.length === 0) {
     return (
@@ -42,15 +46,20 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
 
   const handleNextQuestion = () => {
     // Save the student's answer for this question
-    const currentQuestionId = questions[currentQuestion]._id;
+    const q = questions[currentQuestion] || {};
+    const currentQuestionId = q._id || q.id || String(currentQuestion);
     if (saveStudentAnswer && selectedOption) {
       saveStudentAnswer(currentQuestionId, selectedOption);
     }
 
     // Check if answer is correct for local scoring
     let isCorrect = false;
-    isCorrect =
-      questions[currentQuestion].options.find((option) => option.isCorrect)._id === selectedOption;
+    const opts = Array.isArray(q.options) ? q.options : [];
+    const correct = opts.find((option) => option.isCorrect);
+    if (correct) {
+      const correctKey = getOptionKey(correct, opts.indexOf(correct));
+      isCorrect = String(correctKey) === String(selectedOption);
+    }
     if (isCorrect) {
       setScore(score + 1);
       saveUserTestScore();
@@ -72,7 +81,7 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
           Question {currentQuestion + 1}:
         </Typography>
         <Typography variant="body1" mb={3}>
-          {questions[currentQuestion].question}
+          {questions[currentQuestion]?.question || ''}
         </Typography>
         <Box mb={3}>
           <FormControl component="fieldset">
@@ -82,14 +91,18 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
               value={selectedOption}
               onChange={handleOptionChange}
             >
-              {questions[currentQuestion].options.map((option) => (
-                <FormControlLabel
-                  key={option._id}
-                  value={option._id}
-                  control={<Radio />}
-                  label={option.optionText}
-                />
-              ))}
+              {(questions[currentQuestion]?.options || []).map((option, idx) => {
+                const key = getOptionKey(option, idx);
+                const label = getOptionLabel(option);
+                return (
+                  <FormControlLabel
+                    key={key}
+                    value={String(key)}
+                    control={<Radio />}
+                    label={label}
+                  />
+                );
+              })}
             </RadioGroup>
           </FormControl>
         </Box>

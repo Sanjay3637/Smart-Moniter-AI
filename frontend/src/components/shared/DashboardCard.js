@@ -29,26 +29,31 @@ const DashboardCard = ({
       ) : (
         <CardContent sx={{ p: "30px" }}>
           {title ? (
-            <Stack
-              direction="row"
-              spacing={2}
-              justifyContent="space-between"
-              alignItems={'center'}
-              mb={3}
-            >
-              <Box>
-                {title ? <Typography variant="h5">{title}</Typography> : ''}
-
-                {subtitle ? (
-                  <Typography variant="subtitle2" color="textSecondary">
-                    {subtitle}
-                  </Typography>
-                ) : (
-                  ''
-                )}
-              </Box>
-              {action}
-            </Stack>
+            <Box sx={{
+              mb: 3,
+              p: 2,
+              bgcolor: 'primary.light',
+              borderRadius: 2,
+            }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                justifyContent="space-between"
+                alignItems={'center'}
+              >
+                <Box>
+                  {title ? <Typography variant="h5" color="primary.dark">{title}</Typography> : ''}
+                  {subtitle ? (
+                    <Typography variant="subtitle2" color="textSecondary">
+                      {subtitle}
+                    </Typography>
+                  ) : (
+                    ''
+                  )}
+                </Box>
+                {action}
+              </Stack>
+            </Box>
           ) : null}
 
           {children}

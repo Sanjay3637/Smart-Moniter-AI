@@ -164,7 +164,7 @@ const ExamDetailsView = () => {
                                     color: option.isCorrect ? 'success.main' : 'text.primary',
                                   }}
                                 >
-                                  {String.fromCharCode(65 + optIndex)}. {option.text}
+                                  {String.fromCharCode(65 + optIndex)}. {option.optionText || option.text}
                                 </Typography>
                                 {option.isCorrect && (
                                   <Chip

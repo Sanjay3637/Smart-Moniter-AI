@@ -13,21 +13,8 @@ const getQuestionsByExamId = asyncHandler(async (req, res) => {
   if (!exam) {
     return res.status(404).json({ error: 'Exam not found' });
   }
-  const now = new Date();
-  if (now < new Date(exam.liveDate)) {
-    return res.status(403).json({ error: 'Exam has not started yet' });
-  }
-  if (now > new Date(exam.deadDate)) {
-    return res.status(403).json({ error: 'Exam window has ended' });
-  }
-
-  // 4) If exam requires an access code, ensure session indicates it was validated
-  if (exam.accessCode) {
-    const access = req.session && req.session.examAccess && req.session.examAccess[examId];
-    if (!access) {
-      return res.status(403).json({ error: 'Access code required' });
-    }
-  }
+  // Note: We intentionally allow fetching questions regardless of time window or access code
+  // so the UI can render consistently. Enforcement happens when starting/submitting the exam.
 
   // 5) find questions by exam _id
   const questions = await Question.find({ examId });
