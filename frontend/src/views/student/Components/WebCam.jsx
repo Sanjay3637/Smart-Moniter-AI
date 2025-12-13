@@ -87,7 +87,7 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
 
   return (
     <Box>
-      <Card variant="outlined">
+      <Card variant="outlined" sx={{ overflow: 'hidden', borderRadius: 2 }}>
         <Webcam
           ref={webcamRef}
           muted={true}
@@ -95,10 +95,10 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
             left: 0,
             right: 0,
             textAlign: 'center',
-            zindex: 9,
-
+            zIndex: 9,
             width: '100%',
             height: '100%',
+            objectFit: 'cover',
           }}
         />
 
@@ -111,9 +111,10 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
             left: 0,
             right: 0,
             textAlign: 'center',
-            zindex: 8,
-            width: 240,
-            height: 240,
+            zIndex: 8,
+            width: '100%',
+            height: '100%',
+            top: 0,
           }}
         />
       </Card>

@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid';
 import Avatar from '@mui/material/Avatar';
-import questions from './questionData';
-import BlankCard from 'src/components/shared/BlankCard';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import Countdown from 'react-countdown';
-const NumberOfQuestions = ({ questionLength, submitTest, examDurationInSeconds, onTimerChange }) => {
+const NumberOfQuestions = ({ questionLength, submitTest, examDurationInSeconds, onTimerChange, currentQuestion = 0, answeredMap = {}, onJump }) => {
   const totalQuestions = questionLength; //questions.length;
   // Generate an array of question numbers from 1 to totalQuestions
   const questionNumbers = Array.from({ length: totalQuestions }, (_, index) => index + 1);
-  const handleQuestionButtonClick = (questionNumber) => {
-    // Set the current question to the selected question number
-    // setCurrentQuestion(questionNumber);
-  };
 
   // Create an array of rows, each containing up to 4 question numbers
   const rows = [];
@@ -60,45 +53,56 @@ const NumberOfQuestions = ({ questionLength, submitTest, examDurationInSeconds, 
         position="sticky"
         top="0"
         zIndex={1}
-        bgcolor="white" // Set background color as needed
-        paddingY="10px" // Add padding to top and bottom as needed
-        width="100%"
-        px={3}
-        // mb={5}
+        bgcolor="white"
+        sx={{ px: 3, py: 1.5, borderBottom: '1px solid', borderColor: 'grey.200' }}
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography variant="h6">Questions: {totalQuestions}</Typography>
-          <Typography variant="h6">
-            Time Left: {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+          <Typography variant="subtitle1">Questions: {totalQuestions}</Typography>
+          <Typography variant="h6" color="primary.main">
+            {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
           </Typography>
-          <Button variant="contained" onClick={submitTest} color="error">
+          <Button variant="contained" onClick={submitTest} color="error" size="small">
             Finish Test
           </Button>
         </Stack>
       </Box>
 
-      <Box p={3} mt={5} maxHeight="270px">
+      <Box p={3} mt={3} maxHeight="270px">
         <Grid container spacing={1}>
           {rows.map((row, rowIndex) => (
             <Grid key={rowIndex} item xs={12}>
-              <Stack direction="row" alignItems="center" justifyContent="start">
-                {row.map((questionNumber) => (
-                  <Avatar
-                    key={questionNumber}
-                    variant="rounded"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      fontSize: '20px',
-                      cursor: 'pointer',
-                      margin: '3px',
-                      background: '#ccc',
-                    }}
-                    onClick={() => handleQuestionButtonClick(questionNumber)}
-                  >
-                    {questionNumber}
-                  </Avatar>
-                ))}
+              <Stack direction="row" alignItems="center" justifyContent="start" flexWrap="wrap">
+                {row.map((questionNumber) => {
+                  const idx = questionNumber - 1;
+                  const isCurrent = idx === currentQuestion;
+                  const isAnswered = !!answeredMap[idx];
+                  const palette = isCurrent
+                    ? { bg: 'primary.main', color: '#fff' }
+                    : isAnswered
+                    ? { bg: 'success.main', color: '#fff' }
+                    : { bg: 'error.main', color: '#fff' };
+                  return (
+                    <Avatar
+                      key={questionNumber}
+                      variant="rounded"
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        fontSize: 16,
+                        cursor: 'pointer',
+                        m: 0.5,
+                        bgcolor: palette.bg,
+                        color: palette.color,
+                        borderRadius: '10px',
+                        transition: 'transform 120ms ease, box-shadow 120ms ease, filter 120ms ease',
+                        '&:hover': { transform: 'translateY(-1px)', boxShadow: 2, filter: 'brightness(0.95)' },
+                      }}
+                      onClick={() => onJump && onJump(idx)}
+                    >
+                      {questionNumber}
+                    </Avatar>
+                  );
+                })}
               </Stack>
             </Grid>
           ))}

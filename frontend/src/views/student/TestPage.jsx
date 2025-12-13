@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Grid, CircularProgress } from '@mui/material';
+import { Box, Grid, CircularProgress, Container } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import BlankCard from 'src/components/shared/BlankCard';
 import MultipleChoiceQuestion from './Components/MultipleChoiceQuestion';
@@ -38,6 +38,8 @@ const TestPage = () => {
   const { data, isLoading } = useGetQuestionsQuery(examId);
   const [score, setScore] = useState(0);
   const [studentAnswers, setStudentAnswers] = useState({}); // Track student's selected answers by questionId
+  const [currentQuestion, setCurrentQuestion] = useState(0); // Lifted for navigation highlighting
+  const [answeredMap, setAnsweredMap] = useState({}); // index: true if answered
   const navigate = useNavigate();
 
   const [saveCheatingLogMutation] = useSaveCheatingLogMutation();
@@ -125,74 +127,81 @@ const TestPage = () => {
   };
   return (
     <PageContainer title="TestPage" description="This is TestPage">
-      <Box pt="3rem">
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={7} lg={7}>
-            <BlankCard>
-              <Box
-                width="100%"
-                minHeight="400px"
-                boxShadow={3}
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="center"
-              >
-                {isLoading ? (
-                  <CircularProgress />
-                ) : (
-                  <MultipleChoiceQuestion
-                    questions={data}
-                    saveUserTestScore={saveUserTestScore}
-                    saveStudentAnswer={saveStudentAnswer}
-                    submitTest={handleTestSubmission}
-                  />
-                )}
-              </Box>
-            </BlankCard>
-          </Grid>
-          <Grid item xs={12} md={5} lg={5}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <BlankCard>
-                  <Box
-                    maxHeight="300px"
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'start',
-                      justifyContent: 'center',
-                      overflowY: 'auto',
-                      height: '100%',
-                    }}
-                  >
-                                  <NumberOfQuestions
-                                    questionLength={questions.length}
-                                    submitTest={handleTestSubmission}
-                                    examDurationInSeconds={examDurationInSeconds}
-                                    onTimerChange={setTimer}
-                                  />
-                  </Box>
-                </BlankCard>
-              </Grid>
-              <Grid item xs={12}>
-                <BlankCard>
-                  <Box
-                    width="300px"
-                    maxHeight="180px"
-                    boxShadow={3}
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="start"
-                    justifyContent="center"
-                  >
-                    <WebCam cheatingLog={cheatingLog} updateCheatingLog={setCheatingLog} />
-                  </Box>
-                </BlankCard>
+      <Box
+        sx={{
+          py: { xs: 2, md: 4 },
+          backgroundImage: `radial-gradient(700px 300px at 0% -10%, rgba(99, 102, 241, 0.10), transparent),
+                            radial-gradient(600px 250px at 100% 0%, rgba(236, 72, 153, 0.10), transparent)`,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={7} lg={7}>
+              <BlankCard>
+                <Box
+                  width="100%"
+                  minHeight="440px"
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="stretch"
+                  justifyContent="center"
+                  sx={{ p: { xs: 1, md: 2 } }}
+                >
+                  {isLoading ? (
+                    <Box display="flex" alignItems="center" justifyContent="center" py={8}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <MultipleChoiceQuestion
+                      questions={questions}
+                      saveUserTestScore={saveUserTestScore}
+                      saveStudentAnswer={saveStudentAnswer}
+                      submitTest={handleTestSubmission}
+                      currentQuestion={currentQuestion}
+                      setCurrentQuestion={setCurrentQuestion}
+                      onAnswered={(idx) => setAnsweredMap((prev) => ({ ...prev, [idx]: true }))}
+                      onSelectionChange={(qid, optId) => setStudentAnswers((prev) => ({ ...prev, [qid]: optId }))}
+                    />
+                  )}
+                </Box>
+              </BlankCard>
+            </Grid>
+            <Grid item xs={12} md={5} lg={5}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <BlankCard>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'stretch',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <NumberOfQuestions
+                        questionLength={questions.length}
+                        submitTest={handleTestSubmission}
+                        examDurationInSeconds={examDurationInSeconds}
+                        onTimerChange={setTimer}
+                        currentQuestion={currentQuestion}
+                        answeredMap={answeredMap}
+                        onJump={(idx) => setCurrentQuestion(idx)}
+                      />
+                    </Box>
+                  </BlankCard>
+                </Grid>
+                <Grid item xs={12}>
+                  <BlankCard>
+                    <Box sx={{ p: 1 }}>
+                      <WebCam cheatingLog={cheatingLog} updateCheatingLog={setCheatingLog} />
+                    </Box>
+                  </BlankCard>
+                </Grid>
               </Grid>
             </Grid>
           </Grid>
-        </Grid>
+        </Container>
       </Box>
     </PageContainer>
   );

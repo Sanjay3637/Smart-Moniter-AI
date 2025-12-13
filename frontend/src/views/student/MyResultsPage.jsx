@@ -93,6 +93,36 @@ const MyResultsPage = () => {
     }
   };
 
+  // Normalize inconsistent backend fields to ensure correct display
+  const normalizedResults = Array.isArray(results)
+    ? results
+        .map((r) => {
+          const examName = r.exam?.examName || r.examName || 'Unnamed Exam';
+          const categoryName = r.exam?.category?.name || r.examCategoryName || r.category?.name || 'Uncategorized';
+          const total = Number(r.totalQuestions ?? r.examTotalQuestions ?? 0);
+          const score = Number(r.score ?? 0);
+          const percentage = typeof r.percentage === 'number' && !Number.isNaN(r.percentage)
+            ? r.percentage
+            : total > 0
+              ? (score / total) * 100
+              : 0;
+          const status = r.status || (percentage >= 60 ? 'Passed' : 'Failed');
+          const date = r.submittedAt || r.updatedAt || r.createdAt || null;
+
+          return {
+            ...r,
+            examName,
+            examCategoryName: categoryName,
+            totalQuestions: total,
+            score,
+            percentage,
+            status,
+            date,
+          };
+        })
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    : [];
+
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -123,7 +153,7 @@ const MyResultsPage = () => {
             </Alert>
           )}
 
-          {results.length === 0 ? (
+          {normalizedResults.length === 0 ? (
             <Card>
               <CardContent>
                 <Box textAlign="center" py={4}>
@@ -166,47 +196,28 @@ const MyResultsPage = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Array.isArray(results) && results.length > 0 ? (
-                      results.map((result) => {
-                        // Extract exam details - could be populated or just an ID
-                        const examName = result.exam?.examName || result.examName || 'Unnamed Exam';
-                        const examId = result.exam?._id || result.exam || result.examId;
-                        
-                        // Debug log for each result
-                        console.log('Rendering result:', {
-                          id: result._id,
-                          exam: result.exam,
-                          examId: examId,
-                          examName: examName,
-                          score: result.score,
-                          totalQuestions: result.totalQuestions,
-                          percentage: result.percentage,
-                          date: result.submittedAt || result.updatedAt || result.createdAt
-                        });
-                        
-                        // Calculate status based on percentage if not present
-                        const status = result.status || (result.percentage >= 60 ? 'Passed' : 'Failed');
-                        
+                    {normalizedResults.length > 0 ? (
+                      normalizedResults.map((result) => {
                         return (
                           <TableRow key={result._id} hover sx={{ '&:hover': { backgroundColor: 'rgba(90,106,133,0.04)' } }}>
                             <TableCell>
                               <Typography variant="subtitle2">
-                                {examName}
+                                {result.examName}
                               </Typography>
                               <Typography variant="body2" color="textSecondary">
-                                Score: {result.percentage?.toFixed(0) || 0}%
+                                Score: {Math.round(result.percentage) || 0}%
                               </Typography>
                             </TableCell>
                             <TableCell align="center">
                               <Typography variant="body2" color="textSecondary">
-                                {result.exam?.category?.name || result.examCategoryName || result.category?.name || 'Uncategorized'}
+                                {result.examCategoryName}
                               </Typography>
                             </TableCell>
                         <TableCell align="center">
                           <Chip
-                            icon={getStatusIcon(status)}
-                            label={status}
-                            color={getStatusColor(status)}
+                            icon={getStatusIcon(result.status)}
+                            label={result.status}
+                            color={getStatusColor(result.status)}
                             variant="outlined"
                             size="small"
                           />
@@ -220,7 +231,7 @@ const MyResultsPage = () => {
                               <LinearProgress
                                 variant="determinate"
                                 value={result.percentage || 0}
-                                color={status === 'Passed' ? 'success' : 'error'}
+                                color={result.status === 'Passed' ? 'success' : 'error'}
                                 sx={{ height: 6, borderRadius: 3 }}
                               />
                             </Box>
@@ -228,11 +239,7 @@ const MyResultsPage = () => {
                         </TableCell>
                         <TableCell align="center">
                           <Typography variant="body2">
-                            {result.submittedAt 
-                              ? formatDate(result.submittedAt) 
-                              : result.updatedAt 
-                                ? formatDate(result.updatedAt)
-                                : 'N/A'}
+                            {result.date ? formatDate(result.date) : 'N/A'}
                           </Typography>
                         </TableCell>
                         

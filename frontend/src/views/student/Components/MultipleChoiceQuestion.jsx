@@ -10,8 +10,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 
-export default function MultipleChoiceQuestion({ questions, saveUserTestScore, saveStudentAnswer, submitTest }) {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+export default function MultipleChoiceQuestion({ questions, saveUserTestScore, saveStudentAnswer, submitTest, currentQuestion = 0, setCurrentQuestion, onAnswered, onSelectionChange }) {
   const [selectedOption, setSelectedOption] = useState(null);
   const [score, setScore] = useState(0);
 
@@ -41,7 +40,14 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
   }
 
   const handleOptionChange = (event) => {
-    setSelectedOption(event.target.value);
+    const nextVal = event.target.value;
+    setSelectedOption(nextVal);
+    // propagate to parent immediately to avoid losing last selection on auto-submit
+    const q = questions[currentQuestion] || {};
+    const currentQuestionId = q._id || q.id || String(currentQuestion);
+    if (onSelectionChange) {
+      onSelectionChange(currentQuestionId, nextVal);
+    }
   };
 
   const handleNextQuestion = () => {
@@ -50,6 +56,9 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
     const currentQuestionId = q._id || q.id || String(currentQuestion);
     if (saveStudentAnswer && selectedOption) {
       saveStudentAnswer(currentQuestionId, selectedOption);
+    }
+    if (onAnswered && selectedOption) {
+      onAnswered(currentQuestion);
     }
 
     // Check if answer is correct for local scoring
@@ -66,7 +75,7 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
     }
 
     setSelectedOption(null);
-    if (currentQuestion < questions.length - 1) {
+    if (currentQuestion < questions.length - 1 && setCurrentQuestion) {
       setCurrentQuestion(currentQuestion + 1);
     } else if (submitTest) {
       // if this was the last question, submit immediately
@@ -76,15 +85,15 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
 
   return (
     <Card>
-      <CardContent>
-        <Typography variant="h6" mb={3}>
-          Question {currentQuestion + 1}:
+      <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+          Question {currentQuestion + 1}
         </Typography>
-        <Typography variant="body1" mb={3}>
+        <Typography variant="h6" mb={2}>
           {questions[currentQuestion]?.question || ''}
         </Typography>
-        <Box mb={3}>
-          <FormControl component="fieldset">
+        <Box mb={2}>
+          <FormControl component="fieldset" fullWidth>
             <RadioGroup
               aria-label="quiz"
               name="quiz"
@@ -106,13 +115,13 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
             </RadioGroup>
           </FormControl>
         </Box>
-        <Stack direction="row" spacing={2} justifyContent="space-between">
+        <Stack direction="row" spacing={2}>
+          <Box flexGrow={1} />
           <Button
             variant="contained"
             color="primary"
             onClick={handleNextQuestion}
             disabled={selectedOption === null}
-            style={{ marginLeft: 'auto' }}
           >
             {isLastQuestion ? 'Finish' : 'Next Question'}
           </Button>

@@ -25,7 +25,8 @@ export default function CheatingTable() {
       const filtered = selectedCategoryId 
         ? examsData.filter(exam => exam.category?._id === selectedCategoryId)
         : [...examsData];
-      setFilteredExams(filtered);
+      const sorted = filtered.slice().sort((a, b) => String(a.examName || '').localeCompare(String(b.examName || '')));
+      setFilteredExams(sorted);
       
       // Reset selected exam if it's not in the filtered list
       if (selectedExamId && !filtered.some(exam => exam._id === selectedExamId)) {
@@ -37,7 +38,8 @@ export default function CheatingTable() {
   // Set first category and exam by default
   useEffect(() => {
     if (categoriesData?.length > 0 && !selectedCategoryId) {
-      setSelectedCategoryId(categoriesData[0]._id);
+      const firstCategory = [...categoriesData].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')))[0];
+      if (firstCategory) setSelectedCategoryId(firstCategory._id);
     }
   }, [categoriesData, selectedCategoryId]);
 
@@ -57,7 +59,17 @@ export default function CheatingTable() {
 
   useEffect(() => {
     if (cheatingLogsData) {
-      setCheatingLogs(cheatingLogsData);
+      const sortedLogs = cheatingLogsData
+        .slice()
+        .sort((a, b) => {
+          const rollA = String(a.rollNumber || '').toLowerCase();
+          const rollB = String(b.rollNumber || '').toLowerCase();
+          if (rollA && rollB && rollA !== rollB) return rollA.localeCompare(rollB);
+          const nameA = String(a.username || '').toLowerCase();
+          const nameB = String(b.username || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      setCheatingLogs(sortedLogs);
     }
   }, [cheatingLogsData]);
 
@@ -135,7 +147,7 @@ export default function CheatingTable() {
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               label="Select Category"
             >
-              {categoriesData?.map((category) => (
+              {categoriesData?.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))).map((category) => (
                 <MenuItem key={category._id} value={category._id}>
                   {category.name}
                 </MenuItem>
@@ -181,7 +193,10 @@ export default function CheatingTable() {
           rows={rows}
           columns={columns}
           pageSizeOptions={[5, 10, 25]}
-          initialState={{ pagination: { paginationModel: { pageSize: isSmDown ? 5 : 10 } } }}
+          initialState={{
+            pagination: { paginationModel: { pageSize: isSmDown ? 5 : 10 } },
+            sorting: { sortModel: [{ field: 'rollNumber', sort: 'asc' }] },
+          }}
           disableRowSelectionOnClick
           density={isSmDown ? 'compact' : 'standard'}
           autoHeight
