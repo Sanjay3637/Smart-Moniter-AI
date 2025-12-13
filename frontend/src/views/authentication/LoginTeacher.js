@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Grid, Box, Card, Stack, Typography } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
+import { Grid, Box, Card, Stack, Typography, Button } from '@mui/material';
+import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 
 import PageContainer from 'src/components/container/PageContainer';
 import AuthLogin from './auth/AuthLogin';
@@ -74,6 +75,19 @@ const LoginTeacher = () => {
         >
           <Grid item xs={12} sm={12} lg={4} xl={3} display="flex" justifyContent="center" alignItems="center">
             <Card elevation={6} sx={{ p: { xs: 3, sm: 4 }, zIndex: 1, width: '100%', maxWidth: '520px', borderRadius: 4, background: '#FFFFFF' }}>
+              <Box display="flex" justifyContent="flex-start" mb={1}>
+                <Button
+                  component={Link}
+                  to="/auth/login"
+                  variant="text"
+                  color="primary"
+                  size="small"
+                  startIcon={<ArrowBackIosNewOutlinedIcon fontSize="small" />}
+                  sx={{ fontWeight: 600, textTransform: 'none', px: 0 }}
+                >
+                  Back to Main
+                </Button>
+              </Box>
               <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
                 {/* Simple board icon illustration */}
                 <Box component="svg" width={92} height={72} viewBox="0 0 128 96">
@@ -82,6 +96,10 @@ const LoginTeacher = () => {
                   <rect x="58" y="76" width="12" height="8" fill="#9ca3af" />
                 </Box>
               </Box>
+              <Typography variant="h5" fontWeight={700} textAlign="center" mb={0.5}>Teacher Login</Typography>
+              <Typography variant="subtitle2" color="text.secondary" textAlign="center" mb={2}>
+                TEACHER ACCESS ONLY
+              </Typography>
               <AuthLogin
                 formik={formik}
                 usernameFieldName="email"

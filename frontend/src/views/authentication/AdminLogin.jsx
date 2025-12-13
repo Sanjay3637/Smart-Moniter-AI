@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { Grid, Box, Card, Typography } from '@mui/material';
+import { Grid, Box, Card, Typography, Button } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import AuthLogin from './auth/AuthLogin';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutlined';
 
 const validationSchema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
@@ -49,6 +50,19 @@ const AdminLogin = () => {
         >
           <Grid item xs={12} sm={12} lg={4} xl={3} display="flex" justifyContent="center" alignItems="center">
             <Card elevation={6} sx={{ p: { xs: 3, sm: 4 }, zIndex: 1, width: '100%', maxWidth: '520px', borderRadius: 4, background: '#FFFFFF' }}>
+              <Box display="flex" justifyContent="flex-start" mb={1}>
+                <Button
+                  component={Link}
+                  to="/auth/login"
+                  variant="text"
+                  color="primary"
+                  size="small"
+                  startIcon={<ArrowBackIosNewOutlinedIcon fontSize="small" />}
+                  sx={{ fontWeight: 600, textTransform: 'none', px: 0 }}
+                >
+                  Back to Main
+                </Button>
+              </Box>
               <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
                 {/* Simple shield/lock illustration */}
                 <Box component="svg" width={86} height={72} viewBox="0 0 128 96">
