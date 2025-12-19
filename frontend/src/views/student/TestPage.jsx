@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Box, Grid, CircularProgress, Container } from '@mui/material';
+import { Box, Grid, CircularProgress, Container, Alert, Stack } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import BlankCard from 'src/components/shared/BlankCard';
 import MultipleChoiceQuestion from './Components/MultipleChoiceQuestion';
@@ -57,6 +57,22 @@ const TestPage = () => {
     email: '',
   });
 
+  // Fullscreen handling
+  const pageRef = useRef(null);
+  const submittedRef = useRef(false);
+
+  // In-exam notifications (overlay Alerts)
+  const [events, setEvents] = useState([]); // {id, type, message, severity}
+  const pushEvent = (evt) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const item = { id, severity: 'info', message: '', ...(evt || {}) };
+    setEvents((prev) => [...prev, item]);
+    // auto remove after 4s
+    setTimeout(() => {
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    }, 4000);
+  };
+
   useEffect(() => {
     if (data) {
       setQuestions(data);
@@ -64,7 +80,9 @@ const TestPage = () => {
   }, [data]);
 
   const handleTestSubmission = async () => {
+    if (submittedRef.current) return; // prevent duplicate
     try {
+      submittedRef.current = true;
       // Build cheating log payload locally to avoid async state race
       const cheatingLogPayload = {
         ...cheatingLog,
@@ -112,6 +130,13 @@ const TestPage = () => {
     } catch (error) {
       console.error('Error submitting test:', error);
       toast.error(error.message || 'Failed to submit test');
+    } finally {
+      // try to exit fullscreen if still in it
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen?.();
+        }
+      } catch {}
     }
   };
   const saveUserTestScore = () => {
@@ -125,27 +150,98 @@ const TestPage = () => {
       [questionId]: selectedOptionId
     }));
   };
+
+  // Request fullscreen on mount and auto-submit on exit
+  useEffect(() => {
+    const el = pageRef.current || document.documentElement;
+
+    const requestFS = async () => {
+      try {
+        const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
+        if (req) await req.call(el);
+      } catch (e) {
+        // best-effort; browser may require user gesture
+      }
+    };
+
+    const onFsChange = () => {
+      const inFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || document.mozFullScreenElement);
+      if (!inFs) {
+        // User left fullscreen: submit immediately
+        handleTestSubmission();
+      }
+    };
+
+    // try once when questions load (user navigated here)
+    requestFS();
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    document.addEventListener('msfullscreenchange', onFsChange);
+    document.addEventListener('mozfullscreenchange', onFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+      document.removeEventListener('webkitfullscreenchange', onFsChange);
+      document.removeEventListener('msfullscreenchange', onFsChange);
+      document.removeEventListener('mozfullscreenchange', onFsChange);
+    };
+  }, []);
+
+  // Auto-submit if user switches tabs or page becomes hidden
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        handleTestSubmission();
+      }
+    };
+    const onPageHide = () => {
+      handleTestSubmission();
+    };
+    const onBlur = () => {
+      // On window blur, check if tab switch likely happened
+      if (typeof document.hidden === 'boolean' ? document.hidden : true) {
+        handleTestSubmission();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('blur', onBlur);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('blur', onBlur);
+    };
+  }, []);
   return (
     <PageContainer title="TestPage" description="This is TestPage">
       <Box
+        ref={pageRef}
         sx={{
           py: { xs: 2, md: 4 },
-          backgroundImage: `radial-gradient(700px 300px at 0% -10%, rgba(99, 102, 241, 0.10), transparent),
-                            radial-gradient(600px 250px at 100% 0%, rgba(236, 72, 153, 0.10), transparent)`,
+          minHeight: '100vh',
+          backgroundImage: `radial-gradient(800px 320px at -10% -10%, rgba(99,102,241,0.12), transparent),
+                            radial-gradient(700px 280px at 110% -10%, rgba(236,72,153,0.12), transparent),
+                            linear-gradient(180deg, #fafafa 0%, #f3f5f9 100%)`,
+          backgroundAttachment: 'fixed',
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Grid container spacing={3}>
-            <Grid item xs={12} md={7} lg={7}>
+            <Grid item xs={12} md={8} lg={8}>
               <BlankCard>
                 <Box
                   width="100%"
-                  minHeight="440px"
+                  minHeight="520px"
                   display="flex"
                   flexDirection="column"
                   alignItems="stretch"
                   justifyContent="center"
-                  sx={{ p: { xs: 1, md: 2 } }}
+                  sx={{
+                    p: { xs: 1.5, md: 3 },
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: 3,
+                    border: '1px solid',
+                    borderColor: 'grey.200',
+                  }}
                 >
                   {isLoading ? (
                     <Box display="flex" alignItems="center" justifyContent="center" py={8}>
@@ -166,7 +262,7 @@ const TestPage = () => {
                 </Box>
               </BlankCard>
             </Grid>
-            <Grid item xs={12} md={5} lg={5}>
+            <Grid item xs={12} md={4} lg={4}>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <BlankCard>
@@ -177,6 +273,10 @@ const TestPage = () => {
                         alignItems: 'stretch',
                         justifyContent: 'center',
                         overflow: 'hidden',
+                        background: 'rgba(255,255,255,0.8)',
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: 'grey.200',
                       }}
                     >
                       <NumberOfQuestions
@@ -193,8 +293,8 @@ const TestPage = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <BlankCard>
-                    <Box sx={{ p: 1 }}>
-                      <WebCam cheatingLog={cheatingLog} updateCheatingLog={setCheatingLog} />
+                    <Box sx={{ p: 1.25, background: 'rgba(255,255,255,0.8)', borderRadius: 3, border: '1px solid', borderColor: 'grey.200' }}>
+                      <WebCam cheatingLog={cheatingLog} updateCheatingLog={setCheatingLog} onEvent={pushEvent} />
                     </Box>
                   </BlankCard>
                 </Grid>
@@ -202,6 +302,28 @@ const TestPage = () => {
             </Grid>
           </Grid>
         </Container>
+        {/* Overlay alerts visible in fullscreen too */}
+        <Box sx={{ position: 'fixed', top: 20, right: 20, zIndex: 1400 }}>
+          <Stack spacing={1.25} alignItems="stretch">
+            {events.map((e) => (
+              <Alert
+                key={e.id}
+                severity={e.severity || 'info'}
+                variant="filled"
+                sx={{
+                  boxShadow: 4,
+                  fontSize: '1rem',
+                  px: 2,
+                  py: 1.5,
+                  minWidth: 340,
+                  borderRadius: 2,
+                }}
+              >
+                {e.message || 'Event'}
+              </Alert>
+            ))}
+          </Stack>
+        </Box>
       </Box>
     </PageContainer>
   );

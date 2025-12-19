@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
   Typography,
+  Chip,
 } from '@mui/material';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
@@ -24,10 +25,12 @@ const Header = (props) => {
   const { userInfo } = useSelector((state) => state.auth);
 
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
-    boxShadow: '2px',
+    boxShadow: '0 2px 12px rgba(15, 23, 42, 0.06)',
     background: theme.palette.background.paper,
     justifyContent: 'center',
-    backdropFilter: 'blur(4px)',
+    backdropFilter: 'blur(6px)',
+    borderBottom: '1px solid',
+    borderColor: theme.palette.divider,
     [theme.breakpoints.up('lg')]: {
       minHeight: '70px',
     },
@@ -53,18 +56,14 @@ const Header = (props) => {
         >
           <IconMenu width="20" height="20" />
         </IconButton>
+        <Typography variant="h6" sx={{ fontWeight: 700, ml: 1, color: 'text.primary', letterSpacing: 0.2 }}>
+          SmartMonitor
+        </Typography>
 
         <IconButton
           size="large"
-          aria-label="show 11 new notifications"
+          aria-label="notifications"
           color="inherit"
-          aria-controls="msgs-menu"
-          aria-haspopup="true"
-          sx={{
-            ...(typeof anchorEl2 === 'object' && {
-              color: 'primary.main',
-            }),
-          }}
         >
           <Badge variant="dot" color="primary">
             <IconBellRinging size="21" stroke="1.5" />
@@ -72,7 +71,8 @@ const Header = (props) => {
         </IconButton>
         <Box flexGrow={1} />
         <Stack spacing={1} direction="row" alignItems="center">
-          <Typography variant="contained" color="primary">
+          <Chip label={_.startCase(userInfo.role || 'user')} color="primary" variant="outlined" size="small" sx={{ fontWeight: 600 }} />
+          <Typography variant="body1" color="text.primary" sx={{ fontWeight: 600 }}>
             Hello, {_.startCase(userInfo.name)}
           </Typography>
           <Profile />

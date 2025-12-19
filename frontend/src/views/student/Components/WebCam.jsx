@@ -7,7 +7,7 @@ import { drawRect } from './utilities';
 import { Box, Card } from '@mui/material';
 import swal from 'sweetalert';
 
-export default function Home({ cheatingLog, updateCheatingLog }) {
+export default function Home({ cheatingLog, updateCheatingLog, onEvent }) {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -47,6 +47,7 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
           noFaceCount: prevLog.noFaceCount + 1,
         }));
         swal('Face Not Visible', 'Action has been Recorded', 'error');
+        onEvent && onEvent({ type: 'noFace', message: 'Face not visible', severity: 'error' });
       }
       obj.forEach((element) => {
         if (element.class === 'cell phone') {
@@ -55,6 +56,7 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
             cellPhoneCount: prevLog.cellPhoneCount + 1,
           }));
           swal('Cell Phone Detected', 'Action has been Recorded', 'error');
+          onEvent && onEvent({ type: 'cellPhone', message: 'Cell phone detected', severity: 'error' });
         }
         if (element.class === 'book') {
           updateCheatingLog((prevLog) => ({
@@ -62,10 +64,12 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
             ProhibitedObjectCount: prevLog.ProhibitedObjectCount + 1,
           }));
           swal('Prohibited Object Detected', 'Action has been Recorded', 'error');
+          onEvent && onEvent({ type: 'prohibitedObject', message: 'Prohibited object detected', severity: 'warning' });
         }
 
         if (!element.class === 'person') {
           swal('Face Not Visible', 'Action has been Recorded', 'error');
+          onEvent && onEvent({ type: 'noFace', message: 'Face not visible', severity: 'error' });
         }
         if (element.class === 'person') {
           person_count++;
@@ -75,6 +79,7 @@ export default function Home({ cheatingLog, updateCheatingLog }) {
               multipleFaceCount: prevLog.multipleFaceCount + 1,
             }));
             swal('Multiple Faces Detected', 'Action has been Recorded', 'error');
+            onEvent && onEvent({ type: 'multipleFace', message: 'Multiple faces detected', severity: 'error' });
             person_count = 0;
           }
         }
