@@ -19,7 +19,7 @@ const port = process.env.PORT || 5000;
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: true, // Allow any origin (reflects the request origin) - critical for Vercel
   credentials: true,
   optionsSuccessStatus: 200
 };
