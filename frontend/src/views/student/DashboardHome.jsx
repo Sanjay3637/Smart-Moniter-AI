@@ -8,7 +8,10 @@ import { useGetStudentTasksQuery } from 'src/slices/assignmentApiSlice';
 
 const DashboardHome = () => {
   const { userInfo } = useSelector((state) => state.auth);
-  const { results = [] } = useGetResults();
+  const { results = [], isLoading: resultsLoading } = useGetResults();
+  const resultsList = Array.isArray(results)
+    ? results
+    : (results?.results || results?.data?.results || results?.data || []);
   const { data: assignments = [] } = useGetStudentTasksQuery();
 
   const greeting = useMemo(() => {
@@ -19,19 +22,39 @@ const DashboardHome = () => {
     return 'Good Night';
   }, []);
 
+  // Helper to normalize percentage from different result shapes
+  const num = (v) => {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return 0;
+  };
+  const getPercent = (r) => {
+    const p1 = r?.percentage ?? r?.percentageScore ?? r?.percent;
+    const pn = num(p1);
+    if (pn > 0) return Math.max(0, Math.min(100, Math.round(pn)));
+    const score = num(r?.score ?? r?.marksObtained ?? r?.obtained ?? r?.correctAnswers ?? r?.correct ?? 0);
+    const totalQ = num(r?.totalQuestions ?? r?.examTotalQuestions ?? r?.questions ?? r?.total ?? 0);
+    const totalMarks = num(r?.totalMarks ?? r?.maxMarks ?? 0);
+    const p2 = totalQ > 0 ? (score / totalQ) * 100 : (totalMarks > 0 ? (score / totalMarks) * 100 : 0);
+    return Math.max(0, Math.min(100, Math.round(p2)));
+  };
+
   // KPIs
-  const recent = (Array.isArray(results) ? results : []).slice().sort((a, b) => new Date(b.submittedAt || b.updatedAt || b.createdAt || 0) - new Date(a.submittedAt || a.updatedAt || a.createdAt || 0)).slice(0, 6);
-  const recentPercents = recent.map((r) => {
-    const total = Number(r.totalQuestions ?? r.examTotalQuestions ?? 0) || 0;
-    const score = Number(r.score ?? 0) || 0;
-    const pct = typeof r.percentage === 'number' ? r.percentage : (total > 0 ? (score / total) * 100 : 0);
-    return Math.max(0, Math.min(100, Math.round(pct)));
-  }).reverse();
-  const passCount = (Array.isArray(results) ? results : []).filter((r) => {
-    const p = typeof r.percentage === 'number' ? r.percentage : 0;
-    return (r.status || (p >= 60 ? 'Passed' : 'Failed')).toLowerCase() === 'passed';
+  const recent = (Array.isArray(resultsList) ? resultsList : [])
+    .slice()
+    .sort((a, b) => new Date(b.submittedAt || b.updatedAt || b.createdAt || 0) - new Date(a.submittedAt || a.updatedAt || a.createdAt || 0))
+    .slice(0, 6);
+  const recentPercents = recent.map(getPercent).reverse();
+  const passCount = (Array.isArray(resultsList) ? resultsList : []).filter((r) => {
+    const p = getPercent(r);
+    const status = (r?.status || r?.resultStatus || '').toString().toLowerCase();
+    const isPassed = r?.isPassed === true || r?.passed === true || status === 'pass' || status === 'passed';
+    return isPassed ? true : (status ? status === 'passed' : p >= 60);
   }).length;
-  const passRate = (Array.isArray(results) && results.length > 0) ? Math.round((passCount / results.length) * 100) : 0;
+  const passRate = (Array.isArray(resultsList) && resultsList.length > 0) ? Math.round((passCount / resultsList.length) * 100) : 0;
   const totalTasks = Array.isArray(assignments) ? assignments.length : 0;
   const completedTasks = Array.isArray(assignments) ? assignments.filter((a) => a.status === 'completed').length : 0;
   const taskPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -114,6 +137,50 @@ const DashboardHome = () => {
                   ))
                 )}
               </Stack>
+            </Box>
+          </BlankCard>
+        </Grid>
+      </Grid>
+
+      {/* Performance trend graph */}
+      <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid item xs={12}>
+          <BlankCard>
+            <Box p={2}>
+              <Typography variant="subtitle2" color="text.secondary">Performance Trend</Typography>
+              {resultsLoading ? (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Loading...</Typography>
+              ) : (Array.isArray(results) && results.length > 0 ? (
+                (() => {
+                  const last = results.slice(-12); // up to last 12 results
+                  const points = last.map(getPercent);
+                  const W = 600, H = 140, P = 10;
+                  const n = points.length;
+                  const max = Math.max(100, ...points);
+                  const min = Math.min(0, ...points);
+                  const toX = (i) => P + (n <= 1 ? 0 : (i * (W - 2 * P)) / (n - 1));
+                  const toY = (v) => P + (H - 2 * P) - ((v - min) / (max - min || 1)) * (H - 2 * P);
+                  const d = points.map((v, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(v)}`).join(' ');
+                  return (
+                    <Box sx={{ overflowX: 'auto', mt: 2 }}>
+                      <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.4" />
+                            <stop offset="100%" stopColor="#EC4899" stopOpacity="0.2" />
+                          </linearGradient>
+                        </defs>
+                        <path d={d} fill="none" stroke="url(#grad)" strokeWidth="3" strokeLinecap="round" />
+                        {points.map((v, i) => (
+                          <circle key={i} cx={toX(i)} cy={toY(v)} r="3" fill="#6366F1" />
+                        ))}
+                      </svg>
+                    </Box>
+                  );
+                })()
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>No data yet. Take a test to see your performance trend.</Typography>
+              ))}
             </Box>
           </BlankCard>
         </Grid>
