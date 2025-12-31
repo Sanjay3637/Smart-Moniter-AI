@@ -81,9 +81,13 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Server
-app.listen(port, () => {
-  console.log(`server is running on http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`server is running on http://localhost:${port}`);
+  });
+}
+
+export default app;
 
 // Todos:
 // -**POST /api/users**- Register a users
