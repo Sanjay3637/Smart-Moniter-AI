@@ -12,17 +12,17 @@ const assignmentRoutes = express.Router();
 
 // Student route (must be before :id route)
 assignmentRoutes
-  .route("/assignments/my-tasks")
+  .route("/my-tasks")
   .get(protect, studentOnly, getStudentAssignments);
 
 // Teacher routes
 assignmentRoutes
-  .route("/assignments")
+  .route("/")
   .get(protect, teacherOnly, getTeacherAssignments)
   .post(protect, teacherOnly, createAssignment);
 
 assignmentRoutes
-  .route("/assignments/:id")
+  .route("/:id")
   .put(protect, updateAssignment)
   .delete(protect, teacherOnly, deleteAssignment);
 

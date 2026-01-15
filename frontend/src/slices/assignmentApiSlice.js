@@ -1,6 +1,6 @@
 import { apiSlice } from './apiSlice';
 
-const ASSIGNMENTS_URL = '/api/users/assignments';
+const ASSIGNMENTS_URL = '/api/assignments';
 
 export const assignmentApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

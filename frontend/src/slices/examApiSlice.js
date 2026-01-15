@@ -1,7 +1,7 @@
 import { apiSlice } from './apiSlice';
 
 // Define the base URL for the exams API
-const EXAMS_URL = '/api/users';
+const EXAMS_URL = '/api/exams';
 
 // Inject endpoints for the exam slice
 export const examApiSlice = apiSlice.injectEndpoints({
@@ -9,7 +9,7 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Get all exams
     getExams: builder.query({
       query: () => ({
-        url: `${EXAMS_URL}/exam`,
+        url: `${EXAMS_URL}`,
         method: 'GET',
       }),
     }),
@@ -36,7 +36,7 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Create a new exam
     createExam: builder.mutation({
       query: (data) => ({
-        url: `${EXAMS_URL}/exam`,
+        url: `${EXAMS_URL}`,
         method: 'POST',
         body: data,
       }),
@@ -44,14 +44,14 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Get questions for a specific exam
     getQuestions: builder.query({
       query: (examId) => ({
-        url: `${EXAMS_URL}/exam/questions/${examId}`,
+        url: `${EXAMS_URL}/questions/${examId}`,
         method: 'GET',
       }),
     }),
     // Create a new question for an exam
     createQuestion: builder.mutation({
       query: (data) => ({
-        url: `${EXAMS_URL}/exam/questions`,
+        url: `${EXAMS_URL}/questions`,
         method: 'POST',
         body: data,
       }),
@@ -59,14 +59,14 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Delete an exam
     deleteExam: builder.mutation({
       query: (examId) => ({
-        url: `${EXAMS_URL}/exam/${examId}`,
+        url: `${EXAMS_URL}/${examId}`,
         method: 'DELETE',
       }),
     }),
     // Submit exam answers
     submitExam: builder.mutation({
       query: (data) => ({
-        url: `/api/exams/submit`,
+        url: `/api/submission/submit`,
         method: 'POST',
         body: data,
       }),
@@ -75,7 +75,7 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Teacher: set/update exam access code (password)
     updateExamAccessCode: builder.mutation({
       query: ({ id, accessCode }) => ({
-        url: `${EXAMS_URL}/exam/${id}/access-code`,
+        url: `${EXAMS_URL}/${id}/access-code`,
         method: 'PUT',
         body: { accessCode },
       }),
@@ -83,7 +83,7 @@ export const examApiSlice = apiSlice.injectEndpoints({
     // Student: validate access code before starting exam
     validateExamAccess: builder.mutation({
       query: ({ examId, code }) => ({
-        url: `${EXAMS_URL}/exam/${examId}/validate-access`,
+        url: `${EXAMS_URL}/${examId}/validate-access`,
         method: 'POST',
         body: { code },
       }),

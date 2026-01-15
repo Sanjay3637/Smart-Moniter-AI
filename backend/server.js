@@ -19,7 +19,7 @@ const port = process.env.PORT || 5000;
 
 // CORS configuration
 const corsOptions = {
-  origin: true, // Allow any origin (reflects the request origin) - critical for Vercel
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -53,22 +53,22 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/users", userRoutes);
-app.use("/api/users", examRoutes);
-app.use("/api/users", assignmentRoutes);
+app.use("/api/exams", examRoutes);
+app.use("/api/assignments", assignmentRoutes);
 app.use("/api/results", resultRoutes);
-app.use("/api/exams", submitExamRoutes);
+app.use("/api/submission", submitExamRoutes);
 
 // we we are deploying this in production
 // make frontend build then
 if (process.env.NODE_ENV === "production") {
   const __dirname = path.resolve();
   // we making front build folder static to serve from this app
-  app.use(express.static(path.join(__dirname, "/frontend/build")));
+  app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
   // if we get an routes that are not define by us we show then index html file
   // every enpoint that is not api/users go to this index file
   app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"))
+    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"))
   );
 } else {
   app.get("/", (req, res) => {
@@ -81,13 +81,9 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Server
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(port, () => {
-    console.log(`server is running on http://localhost:${port}`);
-  });
-}
-
-export default app;
+app.listen(port, () => {
+  console.log(`server is running on http://localhost:${port}`);
+});
 
 // Todos:
 // -**POST /api/users**- Register a users

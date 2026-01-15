@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Question from "../models/quesModel.js";
-import Exam from "../models/examModel.js"; // assuming Exam model is in examModel.js
+import Exam from "../models/examModel.js";
+import mongoose from "mongoose";
 
 const getQuestionsByExamId = asyncHandler(async (req, res) => {
   const { examId } = req.params;
@@ -9,7 +10,15 @@ const getQuestionsByExamId = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'examId is missing or invalid' });
   }
 
-  const exam = await Exam.findById(examId);
+  let exam = null;
+  if (mongoose.Types.ObjectId.isValid(examId)) {
+    exam = await Exam.findById(examId);
+  }
+
+  if (!exam) {
+    exam = await Exam.findOne({ examId });
+  }
+
   if (!exam) {
     return res.status(404).json({ error: 'Exam not found' });
   }

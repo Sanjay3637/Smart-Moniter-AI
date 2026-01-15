@@ -1,7 +1,7 @@
 import { apiSlice } from './apiSlice';
 
 // Define the base URL for the exams API
-const EXAMS_URL = '/api/users';
+const EXAMS_URL = '/api/exams';
 
 // Inject endpoints for the exam slice
 export const cheatingLogApiSlice = apiSlice.injectEndpoints({
@@ -15,9 +15,9 @@ export const cheatingLogApiSlice = apiSlice.injectEndpoints({
       providesTags: (result, error, examId) =>
         result
           ? [
-              { type: 'CheatingLogs', id: examId },
-              ...result.map((r) => ({ type: 'CheatingLogs', id: r._id })),
-            ]
+            { type: 'CheatingLogs', id: examId },
+            ...result.map((r) => ({ type: 'CheatingLogs', id: r._id })),
+          ]
           : [{ type: 'CheatingLogs', id: examId }],
     }),
     // Save a new cheating log entry for an exam
