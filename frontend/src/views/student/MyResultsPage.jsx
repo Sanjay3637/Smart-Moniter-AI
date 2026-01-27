@@ -16,7 +16,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  
+
 } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import {
@@ -96,31 +96,31 @@ const MyResultsPage = () => {
   // Normalize inconsistent backend fields to ensure correct display
   const normalizedResults = Array.isArray(results)
     ? results
-        .map((r) => {
-          const examName = r.exam?.examName || r.examName || 'Unnamed Exam';
-          const categoryName = r.exam?.category?.name || r.examCategoryName || r.category?.name || 'Uncategorized';
-          const total = Number(r.totalQuestions ?? r.examTotalQuestions ?? 0);
-          const score = Number(r.score ?? 0);
-          const percentage = typeof r.percentage === 'number' && !Number.isNaN(r.percentage)
-            ? r.percentage
-            : total > 0
-              ? (score / total) * 100
-              : 0;
-          const status = r.status || (percentage >= 60 ? 'Passed' : 'Failed');
-          const date = r.submittedAt || r.updatedAt || r.createdAt || null;
+      .map((r) => {
+        const examName = r.exam?.examName || r.examName || 'Unnamed Exam';
+        const categoryName = r.exam?.category?.name || r.examCategoryName || r.category?.name || 'Uncategorized';
+        const total = Number(r.totalQuestions ?? r.examTotalQuestions ?? 0);
+        const score = Number(r.score ?? 0);
+        const percentage = typeof r.percentage === 'number' && !Number.isNaN(r.percentage)
+          ? r.percentage
+          : total > 0
+            ? (score / total) * 100
+            : 0;
+        const status = r.status || (percentage >= 60 ? 'Passed' : 'Failed');
+        const date = r.submittedAt || r.updatedAt || r.createdAt || null;
 
-          return {
-            ...r,
-            examName,
-            examCategoryName: categoryName,
-            totalQuestions: total,
-            score,
-            percentage,
-            status,
-            date,
-          };
-        })
-        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        return {
+          ...r,
+          examName,
+          examCategoryName: categoryName,
+          totalQuestions: total,
+          score,
+          percentage,
+          status,
+          date,
+        };
+      })
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
     : [];
 
   if (isLoading) {
@@ -188,11 +188,11 @@ const MyResultsPage = () => {
                 }}>
                   <TableHead>
                     <TableRow>
-                <TableCell>Exam</TableCell>
-                <TableCell align="center">Category</TableCell>
-                <TableCell align="center">Status</TableCell>
-                <TableCell align="center">Score</TableCell>
-                <TableCell align="center">Date</TableCell>
+                      <TableCell>Exam</TableCell>
+                      <TableCell align="center">Category</TableCell>
+                      <TableCell align="center">Status</TableCell>
+                      <TableCell align="center">Score</TableCell>
+                      <TableCell align="center">Date</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -213,38 +213,39 @@ const MyResultsPage = () => {
                                 {result.examCategoryName}
                               </Typography>
                             </TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            icon={getStatusIcon(result.status)}
-                            label={result.status}
-                            color={getStatusColor(result.status)}
-                            variant="outlined"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <Box display="flex" flexDirection="column" alignItems="center">
-                            <Typography variant="body2">
-                              {result.score} / {result.totalQuestions}
-                            </Typography>
-                            <Box width={60} mt={0.5}>
-                              <LinearProgress
-                                variant="determinate"
-                                value={result.percentage || 0}
-                                color={result.status === 'Passed' ? 'success' : 'error'}
-                                sx={{ height: 6, borderRadius: 3 }}
+                            <TableCell align="center">
+                              <Chip
+                                icon={getStatusIcon(result.status)}
+                                label={result.status}
+                                color={getStatusColor(result.status)}
+                                variant="outlined"
+                                size="small"
                               />
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Typography variant="body2">
-                            {result.date ? formatDate(result.date) : 'N/A'}
-                          </Typography>
-                        </TableCell>
-                        
-                        </TableRow>
-                      )})
+                            </TableCell>
+                            <TableCell align="center">
+                              <Box display="flex" flexDirection="column" alignItems="center">
+                                <Typography variant="body2">
+                                  {result.score} / {result.maxScore || result.totalQuestions} ({result.percentage}%)
+                                </Typography>
+                                <Box width={60} mt={0.5}>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={result.percentage || 0}
+                                    color={result.status === 'Passed' ? 'success' : 'error'}
+                                    sx={{ height: 6, borderRadius: 3 }}
+                                  />
+                                </Box>
+                              </Box>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Typography variant="body2">
+                                {result.date ? formatDate(result.date) : 'N/A'}
+                              </Typography>
+                            </TableCell>
+
+                          </TableRow>
+                        )
+                      })
                     ) : (
                       <TableRow>
                         <TableCell colSpan={5} align="center" sx={{ py: 4 }}>

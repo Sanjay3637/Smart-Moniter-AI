@@ -1,34 +1,69 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Paper, TextField, Select, MenuItem, IconButton, Tooltip, FormControl, InputLabel, Grid, Stack, useMediaQuery } from '@mui/material';
+import {
+  Box,
+  Paper,
+  TextField,
+  Select,
+  MenuItem,
+  IconButton,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Grid,
+  Stack,
+  useMediaQuery,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button as MuiButton,
+  Typography,
+  Divider,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { DataGrid } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useGetExamsQuery, useGetCategoriesQuery } from 'src/slices/examApiSlice';
-import { useGetCheatingLogsQuery } from 'src/slices/cheatingLogApiSlice';
-import { useDeleteCheatingLogMutation } from 'src/slices/cheatingLogApiSlice';
+import { useGetCheatingLogsQuery, useDeleteCheatingLogMutation } from 'src/slices/cheatingLogApiSlice';
+import { useSearchParams } from 'react-router-dom';
+import _ from 'lodash';
 
 export default function CheatingTable() {
+  const [searchParams] = useSearchParams();
+  const urlExamId = searchParams.get('examId');
+  const urlCategoryId = searchParams.get('categoryId');
+
   const [filter, setFilter] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [selectedExamId, setSelectedExamId] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState(urlCategoryId || '');
+  const [selectedExamId, setSelectedExamId] = useState(urlExamId || '');
   const [cheatingLogs, setCheatingLogs] = useState([]);
   const [filteredExams, setFilteredExams] = useState([]);
+
+  // Gallery Dialog State
+  const [openGallery, setOpenGallery] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
 
   const { data: categoriesData } = useGetCategoriesQuery();
   const { data: examsData } = useGetExamsQuery();
   const { data: cheatingLogsData, refetch: refetchCheatingLogs } = useGetCheatingLogsQuery(selectedExamId);
   const [deleteCheatingLog] = useDeleteCheatingLogMutation();
 
+  const theme = useTheme();
+  const isSmDown = useMediaQuery(theme.breakpoints.down('md'));
+
   // Filter exams based on selected category
   useEffect(() => {
     if (examsData) {
-      const filtered = selectedCategoryId 
+      const filtered = selectedCategoryId
         ? examsData.filter(exam => exam.category?._id === selectedCategoryId)
         : [...examsData];
       const sorted = filtered.slice().sort((a, b) => String(a.examName || '').localeCompare(String(b.examName || '')));
       setFilteredExams(sorted);
-      
-      // Reset selected exam if it's not in the filtered list
+
       if (selectedExamId && !filtered.some(exam => exam._id === selectedExamId)) {
         setSelectedExamId('');
       }
@@ -43,14 +78,12 @@ export default function CheatingTable() {
     }
   }, [categoriesData, selectedCategoryId]);
 
-  // Set first exam when filtered exams change
   useEffect(() => {
     if (filteredExams.length > 0 && !selectedExamId) {
       setSelectedExamId(filteredExams[0]._id);
     }
   }, [filteredExams, selectedExamId]);
 
-  // Update cheating logs when selected exam changes
   useEffect(() => {
     if (selectedExamId) {
       refetchCheatingLogs();
@@ -79,9 +112,6 @@ export default function CheatingTable() {
       (log.rollNumber || '').toLowerCase().includes(filter.toLowerCase()),
   );
 
-  const theme = useTheme();
-  const isSmDown = useMediaQuery(theme.breakpoints.down('md'));
-
   const rows = useMemo(() => filteredUsers.map((log, idx) => ({
     id: log._id || `${idx}-${log.username}`,
     sno: idx + 1,
@@ -95,139 +125,156 @@ export default function CheatingTable() {
   })), [filteredUsers]);
 
   const columns = useMemo(() => [
-    { field: 'sno', headerName: 'Sno', width: 70, flex: 0.3, minWidth: 60 },
-    { field: 'name', headerName: 'Name', flex: 1, minWidth: 140 },
-    { field: 'rollNumber', headerName: 'Roll Number', flex: 0.8, minWidth: 140 },
-    { field: 'noFaceCount', headerName: 'No Face', flex: 0.7, minWidth: 110, align: 'center', headerAlign: 'center' },
-    { field: 'multipleFaceCount', headerName: 'Multiple Face', flex: 0.9, minWidth: 130, align: 'center', headerAlign: 'center' },
-    { field: 'cellPhoneCount', headerName: 'Cell Phone', flex: 0.8, minWidth: 120, align: 'center', headerAlign: 'center' },
-    { field: 'prohibitedObjectCount', headerName: 'Prohibited Object', flex: 1, minWidth: 150, align: 'center', headerAlign: 'center' },
+    { field: 'sno', headerName: 'SNO', width: 60, align: 'center', headerAlign: 'center' },
+    { field: 'name', headerName: 'Student Name', flex: 1, minWidth: 150 },
+    { field: 'rollNumber', headerName: 'Roll Number', flex: 0.8, minWidth: 120 },
+    { field: 'noFaceCount', headerName: 'No Face', width: 90, align: 'center', headerAlign: 'center' },
+    { field: 'multipleFaceCount', headerName: 'Multi Face', width: 95, align: 'center', headerAlign: 'center' },
+    { field: 'cellPhoneCount', headerName: 'Phone', width: 80, align: 'center', headerAlign: 'center' },
+    { field: 'prohibitedObjectCount', headerName: 'Objects', width: 90, align: 'center', headerAlign: 'center' },
     {
-      field: 'actions', headerName: 'Actions', width: 110, sortable: false, filterable: false,
+      field: 'evidence', headerName: 'Evidence', width: 100, sortable: false, align: 'center', headerAlign: 'center',
+      renderCell: (params) => {
+        const hasScreenshots = params.row.raw.screenshots?.length > 0;
+        return (
+          <Tooltip title={hasScreenshots ? "View malpractice screenshots" : "No evidence available"}>
+            <span>
+              <IconButton
+                color="primary"
+                disabled={!hasScreenshots}
+                onClick={() => { setSelectedLog(params.row.raw); setOpenGallery(true); }}
+                size="small"
+              >
+                <VisibilityIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        );
+      }
+    },
+    {
+      field: 'actions', headerName: 'Actions', width: 80, sortable: false, align: 'center', headerAlign: 'center',
       renderCell: (params) => (
-        <Tooltip title="Delete attempt">
-          <IconButton
-            color="error"
-            onClick={async () => {
-              const log = params.row.raw;
-              const ok = window.confirm(`Delete cheating log for ${log.username}? This action cannot be undone.`);
-              if (!ok) return;
-              if (!log._id) {
-                window.alert('Cannot delete: missing log id');
-                return;
-              }
+        <IconButton
+          color="error"
+          onClick={async () => {
+            const log = params.row.raw;
+            if (window.confirm(`Delete log for ${log.username}?`)) {
               try {
                 await deleteCheatingLog({ id: log._id, examId: selectedExamId }).unwrap();
-                setCheatingLogs((prev) => prev.filter((l) => l._id !== log._id));
-              } catch (err) {
-                console.error('Delete failed', err);
-                window.alert('Failed to delete attempt. See console for details.');
-              }
-            }}
-            size="small"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
+                setCheatingLogs(prev => prev.filter(l => l._id !== log._id));
+              } catch (err) { console.error(err); }
+            }
+          }}
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
       )
     },
   ], [deleteCheatingLog, selectedExamId]);
 
-  // removed quick stat chips for cleaner UI
-
   return (
     <Box>
-      <Grid container spacing={{ xs: 1, md: 2 }} sx={{ mb: { xs: 1.5, md: 2 } }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth size={isSmDown ? 'small' : 'medium'}>
-            <InputLabel id="category-select-label">Select Category</InputLabel>
+          <FormControl fullWidth>
+            <InputLabel>Select Category</InputLabel>
             <Select
-              labelId="category-select-label"
               value={selectedCategoryId || ''}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               label="Select Category"
             >
-              {categoriesData?.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))).map((category) => (
-                <MenuItem key={category._id} value={category._id}>
-                  {category.name}
-                </MenuItem>
-              ))}
+              {categoriesData?.map(c => <MenuItem key={c._id} value={c._id}>{c.name}</MenuItem>)}
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth size={isSmDown ? 'small' : 'medium'}>
-            <InputLabel id="exam-select-label">Select Exam</InputLabel>
+          <FormControl fullWidth disabled={!selectedCategoryId}>
+            <InputLabel>Select Exam</InputLabel>
             <Select
-              labelId="exam-select-label"
               value={selectedExamId || ''}
               onChange={(e) => setSelectedExamId(e.target.value)}
               label="Select Exam"
-              disabled={!selectedCategoryId || filteredExams.length === 0}
             >
-              {filteredExams.map((exam) => (
-                <MenuItem key={exam._id} value={exam._id}>
-                  {exam.examName}
-                </MenuItem>
-              ))}
-              {filteredExams.length === 0 && (
-                <MenuItem disabled>No exams available in this category</MenuItem>
-              )}
+              {filteredExams.map(e => <MenuItem key={e._id} value={e._id}>{e.examName}</MenuItem>)}
             </Select>
           </FormControl>
         </Grid>
       </Grid>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 2 }} alignItems={{ xs: 'stretch', md: 'center' }} mb={{ xs: 1, md: 1.5 }}>
-        <TextField
-          label="Filter by Name or Roll Number"
-          variant="outlined"
-          size={isSmDown ? 'small' : 'medium'}
-          fullWidth
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
-      </Stack>
 
-      <Paper variant="outlined" sx={{ width: '100%' }}>
+      <TextField
+        label="Search Student..."
+        fullWidth
+        variant="outlined"
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        sx={{ mb: 3 }}
+      />
+
+      <Paper variant="outlined" sx={{ border: '1px solid rgba(26, 35, 126, 0.12)' }}>
         <DataGrid
           rows={rows}
           columns={columns}
-          pageSizeOptions={[5, 10, 25]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: isSmDown ? 5 : 10 } },
-            sorting: { sortModel: [{ field: 'rollNumber', sort: 'asc' }] },
-          }}
-          disableRowSelectionOnClick
-          density={isSmDown ? 'compact' : 'standard'}
           autoHeight
-          columnVisibilityModel={isSmDown ? { prohibitedObjectCount: false, cellPhoneCount: true } : undefined}
-          rowHeight={isSmDown ? 52 : 64}
-          columnHeaderHeight={isSmDown ? 52 : 60}
-          showCellVerticalBorder
-          showColumnVerticalBorder
+          pageSizeOptions={[10, 20]}
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+          disableRowSelectionOnClick
           sx={{
-            border: 1,
-            borderColor: 'grey.500',
+            border: 'none',
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: 'action.hover',
-              borderBottom: '1px solid',
-              borderColor: 'grey.500',
+              background: 'linear-gradient(135deg, #1A237E 0%, #0D47A1 100%)',
+              color: 'white',
+              '& .MuiDataGrid-columnSeparator': { display: 'none' },
+              '& .MuiIconButton-root': { color: 'white' }
             },
-            '& .MuiDataGrid-row': {
-              borderBottom: '1px solid',
-              borderColor: 'grey.500',
-            },
-            '& .MuiDataGrid-cell': {
-              py: isSmDown ? 1 : 1.5,
-              borderRight: '1px solid',
-              borderColor: 'grey.500',
-            },
-            '& .MuiDataGrid-cell:last-of-type': {
-              borderRight: 'none',
-            },
+            '& .MuiDataGrid-row:hover': { bgcolor: 'rgba(26, 35, 126, 0.04)' }
           }}
         />
       </Paper>
+
+      {/* Screenshot Gallery Dialog */}
+      <Dialog
+        open={openGallery}
+        onClose={() => setOpenGallery(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 0 } }}
+      >
+        <DialogTitle sx={{
+          background: 'linear-gradient(135deg, #1A237E 0%, #0D47A1 100%)',
+          color: 'white',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Typography variant="h5" fontWeight={700}>Evidence Logs: {selectedLog?.username}</Typography>
+          <Typography variant="body2" sx={{ opacity: 0.8 }}>Roll: {selectedLog?.rollNumber}</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, pt: 4 }}>
+          {selectedLog?.screenshots?.length > 0 ? (
+            <ImageList cols={isSmDown ? 1 : 2} gap={20}>
+              {selectedLog.screenshots.map((item, idx) => (
+                <ImageListItem key={idx} sx={{ border: '1px solid #eee' }}>
+                  <img src={item.image} alt={item.type} loading="lazy" style={{ width: '100%', height: 'auto' }} />
+                  <ImageListItemBar
+                    title={_.startCase(item.type)}
+                    subtitle={new Date(item.timestamp).toLocaleString()}
+                    sx={{
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+                    }}
+                  />
+                </ImageListItem>
+              ))}
+            </ImageList>
+          ) : (
+            <Typography align="center" py={4} color="textSecondary">No screenshots captured.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+          <MuiButton onClick={() => setOpenGallery(false)} variant="contained">Close Gallery</MuiButton>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

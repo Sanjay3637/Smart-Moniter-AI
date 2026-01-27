@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Grid, Box, Card, Typography, Button } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import AuthLogin from './auth/AuthLogin';
+import AuthBackground from './auth/AuthBackground';
+import AuthFeatures from './auth/AuthFeatures';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
@@ -38,13 +40,15 @@ const AdminLogin = () => {
   return (
     <PageContainer title="Admin Login" description="Admin login page">
       <Box sx={{ position: 'relative' }}>
+        <AuthBackground />
+        <AuthFeatures role="admin" />
         <Grid
           container
           spacing={0}
           justifyContent="center"
           sx={{
             height: '100vh',
-            background: 'linear-gradient(180deg, #FFE29F 0%, #FFA99F 50%, #FFD6A5 100%)',
+            background: 'transparent',
             backgroundAttachment: 'fixed',
           }}
         >
@@ -66,8 +70,8 @@ const AdminLogin = () => {
               <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
                 {/* Simple shield/lock illustration */}
                 <Box component="svg" width={86} height={72} viewBox="0 0 128 96">
-                  <path d="M64 8l40 12v28c0 24-40 32-40 32S24 72 24 48V20l40-12z" fill="#111827"/>
-                  <path d="M64 40a10 10 0 0110 10v6H54v-6a10 10 0 0110-10z" fill="#f59e0b"/>
+                  <path d="M64 8l40 12v28c0 24-40 32-40 32S24 72 24 48V20l40-12z" fill="#111827" />
+                  <path d="M64 40a10 10 0 0110 10v6H54v-6a10 10 0 0110-10z" fill="#f59e0b" />
                   <rect x="58" y="56" width="12" height="10" rx="2" fill="#fde68a" />
                 </Box>
               </Box>
@@ -77,6 +81,7 @@ const AdminLogin = () => {
                 usernameFieldName="email"
                 usernameLabel="Email"
                 placeholder="Enter Your Email"
+                hideForgotPassword={true}
                 subtext={
                   <Typography variant="subtitle1" textAlign="center" color="textSecondary" mb={1}>
                     ADMIN ACCESS ONLY

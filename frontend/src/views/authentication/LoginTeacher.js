@@ -5,6 +5,8 @@ import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutl
 
 import PageContainer from 'src/components/container/PageContainer';
 import AuthLogin from './auth/AuthLogin';
+import AuthBackground from './auth/AuthBackground';
+import AuthFeatures from './auth/AuthFeatures';
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -51,7 +53,7 @@ const LoginTeacher = () => {
   const handleSubmit = async ({ email, password }) => {
     try {
       const res = await login({ email, password }).unwrap();
-
+      sessionStorage.setItem('app_session_active', 'true');
       dispatch(setCredentials({ ...res }));
       formik.resetForm();
       navigate('/');
@@ -63,13 +65,15 @@ const LoginTeacher = () => {
   return (
     <PageContainer title="Teacher Login" description="Teacher login page">
       <Box sx={{ position: 'relative' }}>
+        <AuthBackground />
+        <AuthFeatures role="teacher" />
         <Grid
           container
           spacing={0}
           justifyContent="center"
           sx={{
             height: '100vh',
-            background: 'linear-gradient(180deg, #FFE29F 0%, #FFA99F 50%, #FFD6A5 100%)',
+            background: 'transparent',
             backgroundAttachment: 'fixed',
           }}
         >

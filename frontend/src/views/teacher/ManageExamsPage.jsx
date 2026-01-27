@@ -15,7 +15,7 @@ import {
   TextField,
   Stack,
 } from '@mui/material';
-import { IconTrash, IconPlus, IconLock, IconLockOpen } from '@tabler/icons-react';
+import { IconTrash, IconPlus, IconLock, IconLockOpen, IconListDetails } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
 import { useGetExamsQuery, useDeleteExamMutation, useGetCategoriesQuery, useDeleteCategoryMutation, useUpdateExamAccessCodeMutation } from 'src/slices/examApiSlice';
@@ -235,8 +235,23 @@ const ManageExamsPage = () => {
                         size="small"
                         startIcon={exam.accessCode ? <IconLock size={16} /> : <IconLockOpen size={16} />}
                         onClick={() => openPassDialog(exam)}
+                        fullWidth
                       >
-                        {exam.accessCode ? 'Update Password' : 'Set Password'}
+                        {exam.accessCode ? 'Password' : 'Set PW'}
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        color="primary"
+                        startIcon={<IconListDetails size={16} />}
+                        onClick={() => navigate(`/exam-log?examId=${exam._id}&categoryId=${exam.category?._id || ''}`)}
+                        fullWidth
+                        sx={{
+                          background: 'linear-gradient(135deg, #1A237E 0%, #0D47A1 100%)',
+                          fontWeight: 600
+                        }}
+                      >
+                        View Logs
                       </Button>
                     </Stack>
                   </CardContent>

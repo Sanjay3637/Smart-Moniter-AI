@@ -1,4 +1,6 @@
 import express from "express";
+import path from "path";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
@@ -10,6 +12,7 @@ import userRoutes from "./routes/userRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
 import resultRoutes from "./routes/resultRoutes.js";
 import submitExamRoutes from "./routes/submitExamRoutes.js";
+import compileRoutes from "./routes/compileRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -26,9 +29,17 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.use(cookieParser());
+
+// Check DB connection status
+app.use((req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ message: "Database not connected" });
+  }
+  next();
+});
 
 // Session configuration (replaces JWT cookie auth)
 app.use(
@@ -40,7 +51,7 @@ app.use(
       httpOnly: true,
       secure: process.env.NODE_ENV !== "development",
       sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      // maxAge removed to make it a session cookie (expires when browser closes)
     },
   })
 );
@@ -57,6 +68,7 @@ app.use("/api/exams", examRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/results", resultRoutes);
 app.use("/api/submission", submitExamRoutes);
+app.use("/api/compile", compileRoutes);
 
 // we we are deploying this in production
 // make frontend build then

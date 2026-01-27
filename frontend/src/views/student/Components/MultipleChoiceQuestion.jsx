@@ -57,17 +57,22 @@ export default function MultipleChoiceQuestion({ questions, saveUserTestScore, s
     if (saveStudentAnswer && selectedOption) {
       saveStudentAnswer(currentQuestionId, selectedOption);
     }
-    if (onAnswered && selectedOption) {
-      onAnswered(currentQuestion);
-    }
-
     // Check if answer is correct for local scoring
-    let isCorrect = false;
     const opts = Array.isArray(q.options) ? q.options : [];
     const correct = opts.find((option) => option.isCorrect);
+    let isCorrect = false;
     if (correct) {
       const correctKey = getOptionKey(correct, opts.indexOf(correct));
       isCorrect = String(correctKey) === String(selectedOption);
+    }
+
+    if (onAnswered && selectedOption) {
+      // For MCQ: correct (Green) or error/wrong (Red)
+      // If we don't want to reveal answer immediately, we might just use 'attended' (White/Blue?)
+      // But user asked for: "if attend and there is error... red".
+      // Assuming instant feedback style based on request descriptions.
+      // If "attended" means just selected, but "error" means wrong answer.
+      onAnswered(currentQuestion, isCorrect ? 'correct' : 'error');
     }
     if (isCorrect) {
       setScore(score + 1);

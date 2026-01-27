@@ -32,7 +32,7 @@ const getQuestionsByExamId = asyncHandler(async (req, res) => {
 });
 
 const createQuestion = asyncHandler(async (req, res) => {
-  const { question, options, examId } = req.body;
+  const { question, options, examId, questionType, codeQuestion } = req.body;
 
   if (!examId) {
     return res.status(400).json({ error: 'examId is missing or invalid' });
@@ -43,6 +43,8 @@ const createQuestion = asyncHandler(async (req, res) => {
     question,
     options,
     examId,
+    questionType,
+    codeQuestion,
   });
 
   const createdQuestion = await newQuestion.save();

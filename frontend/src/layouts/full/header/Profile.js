@@ -42,13 +42,13 @@ const Profile = () => {
       await logoutApiCall().unwrap();
       dispatch(logout());
       navigate('/auth/login');
-    } catch (err) {}
+    } catch (err) { }
   };
   return (
     <Box>
       <IconButton
         size="large"
-        aria-label="show 11 new notifications"
+        aria-label="profile"
         color="inherit"
         aria-controls="msgs-menu"
         aria-haspopup="true"
@@ -60,8 +60,8 @@ const Profile = () => {
         onClick={handleClick2}
       >
         <Avatar
-          src={ProfileImg}
-          alt={ProfileImg}
+          src={userInfo.profilePic || ProfileImg}
+          alt={userInfo.name}
           sx={{
             width: 35,
             height: 35,
@@ -97,6 +97,12 @@ const Profile = () => {
           </ListItemIcon>
           <ListItemText>My Account</ListItemText>
         </MenuItem>
+        <MenuItem component={Link} to="/profile" state={{ editMode: true }}>
+          <ListItemIcon>
+            <IconListCheck width={20} />
+          </ListItemIcon>
+          <ListItemText>Edit Profile</ListItemText>
+        </MenuItem>
         {userInfo?.role === 'student' && (
           <MenuItem component={Link} to="/my-tasks">
             <ListItemIcon>
@@ -106,7 +112,21 @@ const Profile = () => {
           </MenuItem>
         )}
         <Box mt={1} py={1} px={2}>
-          <Button variant="outlined" color="primary" onClick={logoutHandler} fullWidth>
+          <Button
+            variant="contained"
+            onClick={logoutHandler}
+            fullWidth
+            sx={{
+              fontWeight: 800,
+              background: 'linear-gradient(45deg, #d32f2f 30%, #f44336 90%)',
+              color: 'white',
+              borderRadius: 0,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #b71c1c 30%, #d32f2f 90%)',
+                boxShadow: '0 4px 12px rgba(211, 47, 47, 0.4)'
+              }
+            }}
+          >
             Logout
           </Button>
         </Box>

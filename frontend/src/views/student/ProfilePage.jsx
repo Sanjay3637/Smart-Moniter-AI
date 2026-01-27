@@ -28,18 +28,38 @@ import {
   IconCalendar,
 } from '@tabler/icons-react';
 
+import { useLocation } from 'react-router-dom';
+
 const ProfilePage = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [updateProfile, { isLoading }] = useUpdateUserMutation();
+  const location = useLocation();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(location.state?.editMode || false);
   const [formData, setFormData] = useState({
     name: userInfo?.name || '',
     email: userInfo?.email || '',
+    dob: userInfo?.dob ? new Date(userInfo.dob).toISOString().split('T')[0] : '',
+    profilePic: userInfo?.profilePic || '',
     password: '',
     confirmPassword: '',
   });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('File size should be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, profilePic: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -59,6 +79,8 @@ const ProfilePage = () => {
         _id: userInfo._id,
         name: formData.name,
         email: formData.email,
+        dob: formData.dob,
+        profilePic: formData.profilePic,
         role: userInfo.role,
       };
 
@@ -80,6 +102,8 @@ const ProfilePage = () => {
     setFormData({
       name: userInfo?.name || '',
       email: userInfo?.email || '',
+      dob: userInfo?.dob ? new Date(userInfo.dob).toISOString().split('T')[0] : '',
+      profilePic: userInfo?.profilePic || '',
       password: '',
       confirmPassword: '',
     });
@@ -106,18 +130,54 @@ const ProfilePage = () => {
           {/* Profile Card */}
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
-              <Avatar
-                sx={{
-                  width: 120,
-                  height: 120,
-                  margin: '0 auto',
-                  fontSize: '2.5rem',
-                  bgcolor: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                {getInitials(userInfo?.name)}
-              </Avatar>
+              <Box sx={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
+                <Avatar
+                  src={isEditing ? formData.profilePic : userInfo?.profilePic}
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    fontSize: '2.5rem',
+                    bgcolor: 'primary.main',
+                    mb: 2,
+                  }}
+                >
+                  {!userInfo?.profilePic && !formData.profilePic && getInitials(userInfo?.name)}
+                </Avatar>
+                {isEditing && (
+                  <>
+                    <input
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="profile-pic-file"
+                      type="file"
+                      onChange={handleFileChange}
+                    />
+                    <label htmlFor="profile-pic-file">
+                      <IconButton
+                        color="primary"
+                        aria-label="upload picture"
+                        component="span"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 15,
+                          right: 0,
+                          bgcolor: 'white',
+                          '&:hover': { bgcolor: '#f5f5f5' },
+                          boxShadow: 2,
+                        }}
+                        size="small"
+                      >
+                        <IconEdit size={16} />
+                      </IconButton>
+                    </label>
+                  </>
+                )}
+              </Box>
+              {isEditing && (
+                <Typography variant="caption" color="textSecondary" display="block" sx={{ mt: -1, mb: 2 }}>
+                  Max size: 2MB (JPG/PNG)
+                </Typography>
+              )}
               <Typography variant="h5" fontWeight={600} mb={1}>
                 {userInfo?.name}
               </Typography>
@@ -242,6 +302,36 @@ const ProfilePage = () => {
                   ) : (
                     <Typography variant="body1" ml={4}>
                       {userInfo?.email}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box>
+                  <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <IconCalendar size={20} color="#5D87FF" />
+                    <Typography variant="body2" fontWeight={600} color="textSecondary">
+                      Date of Birth
+                    </Typography>
+                  </Box>
+                  {isEditing ? (
+                    <TextField
+                      fullWidth
+                      name="dob"
+                      type="date"
+                      value={formData.dob}
+                      onChange={handleChange}
+                      variant="outlined"
+                      size="small"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  ) : (
+                    <Typography variant="body1" ml={4}>
+                      {userInfo?.dob ? new Date(userInfo.dob).toLocaleDateString() : 'Not Set'}
+                      {userInfo?.dob && (
+                        <Typography component="span" variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+                          ({Math.abs(new Date(Date.now() - new Date(userInfo.dob).getTime()).getUTCFullYear() - 1970)} years old)
+                        </Typography>
+                      )}
                     </Typography>
                   )}
                 </Box>

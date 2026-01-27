@@ -7,6 +7,8 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import PageContainer from 'src/components/container/PageContainer';
 import Logo from 'src/layouts/full/shared/logo/Logo';
 import { useSelector } from 'react-redux';
+import AuthBackground from './auth/AuthBackground';
+import AuthFeatures from './auth/AuthFeatures';
 
 // This page lets the user choose whether to login as student or teacher
 
@@ -21,119 +23,141 @@ const Login = () => {
   }, [navigate, userInfo]);
 
   return (
-    <PageContainer title="Login" description="this is Login page">
-      <Box>
+    <PageContainer title="Login" description="Choose login type">
+      <AuthBackground />
+      <AuthFeatures role="general" />
+
+      <Grid
+        container
+        spacing={0}
+        justifyContent="center"
+        sx={{ height: '100vh', position: 'relative', zIndex: 10 }}
+      >
         <Grid
-          container
-          spacing={0}
+          item
+          xs={12}
+          display="flex"
           justifyContent="center"
-          sx={{
-            height: '100vh',
-            backgroundImage: [
-              'radial-gradient(ellipse at 20% 10%, rgba(99,102,241,.35), transparent 35%)',
-              'radial-gradient(ellipse at 80% 0%, rgba(16,185,129,.25), transparent 40%)',
-              'radial-gradient(ellipse at 0% 80%, rgba(59,130,246,.25), transparent 35%)',
-              "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2))",
-              "url('/login-bg.jpg')",
-            ].join(', '),
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            position: 'relative',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              background:
-                'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 35%), ' +
-                'radial-gradient(circle at 80% 30%, rgba(255,255,255,0.14), transparent 35%), ' +
-                'radial-gradient(circle at 40% 80%, rgba(255,255,255,0.12), transparent 35%)',
-              mixBlendMode: 'overlay',
-              pointerEvents: 'none',
-              animation: 'bgfloat 18s ease-in-out infinite',
-              backgroundSize: '200% 200%'
-            },
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: 'repeating-radial-gradient(rgba(255,255,255,0.08) 0 2px, transparent 3px 60px)',
-              opacity: 0.25,
-              pointerEvents: 'none',
-            },
-            boxShadow: 'inset 0 -100px 200px rgba(0,0,0,.12)',
-            '@keyframes bgfloat': {
-              '0%': { backgroundPosition: '0% 50%' },
-              '50%': { backgroundPosition: '100% 50%' },
-              '100%': { backgroundPosition: '0% 50%' },
-            },
-          }}
+          alignItems="center"
         >
-          <Grid
-            item
-            xs={12}
-            sm={12}
-            lg={4}
-            xl={3}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
+          <Card
+            elevation={0}
+            sx={{
+              p: { xs: 6, sm: 8 }, // Slightly tighter for neatness
+              zIndex: 1,
+              width: '100%',
+              maxWidth: '540px',
+              borderRadius: 0,
+              backdropFilter: 'blur(40px) saturate(180%)',
+              background: 'rgba(255, 255, 255, 0.92)',
+              boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.7)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              textAlign: 'center',
+              position: 'relative'
+            }}
           >
-            <Card
-              elevation={0}
+            {/* Top accent line */}
+            <Box
               sx={{
-                p: { xs: 3, sm: 4 },
-                zIndex: 1,
-                width: '100%',
-                maxWidth: '520px',
-                borderRadius: 3,
-                backdropFilter: 'blur(10px)',
-                background: 'rgba(255,255,255,0.65)',
-                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.2)',
-                border: '1px solid rgba(255,255,255,0.35)',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '4px',
+                background: 'linear-gradient(90deg, #1A237E, #0D47A1)',
+              }}
+            />
+
+            <Typography
+              variant="h3"
+              fontWeight={900}
+              color="primary"
+              mb={1.5}
+              sx={{
+                letterSpacing: '-1px',
+                textTransform: 'uppercase'
               }}
             >
-              <Box display="flex" alignItems="center" justifyContent="center">
-                <Logo />
-              </Box>
-              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-                <Typography variant="h5" fontWeight={700} textAlign="center" mt={1}>
-                  Select Login Type
-                </Typography>
-                <Typography variant="body2" color="text.secondary" textAlign="center" mb={1}>
-                  Welcome to SmartMonitor. Choose how you want to sign in.
-                </Typography>
-                <Divider sx={{ width: '100%', my: 1 }} />
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} width="100%">
-                  <Button
-                    component={Link}
-                    to="/auth/login-student"
-                    variant="contained"
-                    fullWidth
-                    startIcon={<SchoolIcon />}
-                    sx={{ py: 1.25 }}
-                  >
-                    Student Login
-                  </Button>
-                  <Button
-                    component={Link}
-                    to="/auth/login-teacher"
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<PersonOutlineIcon />}
-                    sx={{ py: 1.25, bgcolor: 'rgba(255,255,255,0.6)', '&:hover': { bgcolor: 'rgba(255,255,255,0.8)' } }}
-                  >
-                    Teacher Login
-                  </Button>
-                </Stack>
-                <Typography variant="caption" color="text.secondary" mt={2}>
-                  By continuing, you agree to our Terms and Privacy Policy.
-                </Typography>
-              </Box>
-            </Card>
-          </Grid>
+              Smart - Monitor
+            </Typography>
+            <Typography variant="body1" color="textSecondary" mb={6} sx={{ fontWeight: 600, opacity: 0.7 }}>
+              Next-Gen Autonomous Exam Proctoring
+            </Typography>
+
+            <Stack spacing={3}>
+              <Button
+                component={Link}
+                to="/auth/login-student"
+                variant="contained"
+                size="large"
+                fullWidth
+                startIcon={<SchoolIcon />}
+                sx={{
+                  py: 2,
+                  fontSize: '0.95rem',
+                  fontWeight: 800,
+                  background: 'linear-gradient(135deg, #1A237E 0%, #0D47A1 100%)',
+                  borderRadius: 0,
+                  boxShadow: '0 10px 20px rgba(13, 71, 161, 0.3)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 15px 25px rgba(13, 71, 161, 0.4)',
+                  }
+                }}
+              >
+                Launch Student Portal
+              </Button>
+
+              <Button
+                component={Link}
+                to="/auth/login-teacher"
+                variant="outlined"
+                size="large"
+                fullWidth
+                startIcon={<PersonOutlineIcon />}
+                sx={{
+                  py: 2,
+                  fontSize: '0.95rem',
+                  fontWeight: 800,
+                  borderWidth: '2px',
+                  borderRadius: 0,
+                  color: '#1A237E',
+                  borderColor: '#1A237E',
+                  '&:hover': {
+                    borderWidth: '2px',
+                    transform: 'translateY(-2px)',
+                    bgcolor: 'rgba(26, 35, 126, 0.05)',
+                    borderColor: '#0D47A1'
+                  }
+                }}
+              >
+                Access Faculty Hub
+              </Button>
+            </Stack>
+
+            <Box mt={6} pt={4} sx={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, letterSpacing: '1px', opacity: 0.6, display: 'block', mb: 1 }}>
+                ENCRYPTED SESSION ACTIVE • 256-BIT SECURITY
+              </Typography>
+              <Button
+                component={Link}
+                to="/auth/admin-login"
+                variant="text"
+                size="small"
+                sx={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  color: 'primary.main',
+                  opacity: 0.5,
+                  '&:hover': { opacity: 1, background: 'transparent', textDecoration: 'underline' }
+                }}
+              >
+                ADMIN PORTAL ACCESS
+              </Button>
+            </Box>
+          </Card>
         </Grid>
-      </Box>
+      </Grid>
     </PageContainer>
   );
 };

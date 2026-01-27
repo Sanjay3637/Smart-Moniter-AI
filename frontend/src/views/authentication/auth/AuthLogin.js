@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 
 import CustomTextField from '../../../components/forms/theme-elements/CustomTextField';
 
-const AuthLogin = ({ formik, title, subtitle, subtext, usernameFieldName = 'email', usernameLabel = 'Username', placeholder = 'Enter Your Email' }) => {
+const AuthLogin = ({ formik, title, subtitle, subtext, usernameFieldName = 'email', usernameLabel = 'Username', placeholder = 'Enter Your Email', hideForgotPassword = false }) => {
   const { values, errors, touched, handleBlur, handleChange, handleSubmit } = formik;
   return (
     <>
@@ -77,17 +77,22 @@ const AuthLogin = ({ formik, title, subtitle, subtext, usernameFieldName = 'emai
           <FormGroup>
             <FormControlLabel control={<Checkbox defaultChecked />} label="Remember this Device" />
           </FormGroup>
-          <Typography
-            // component={Link}
-            // to="/"
-            fontWeight="500"
-            sx={{
-              textDecoration: 'none',
-              color: 'primary.main',
-            }}
-          >
-            Forgot Password ?
-          </Typography>
+          {!hideForgotPassword && (
+            <Typography
+              component={Link}
+              to="/auth/forgot-password"
+              fontWeight="500"
+              sx={{
+                textDecoration: 'none',
+                color: 'primary.main',
+                '&:hover': {
+                  textDecoration: 'underline'
+                }
+              }}
+            >
+              Forgot Password ?
+            </Typography>
+          )}
         </Stack>
       </Stack>
       <Box>

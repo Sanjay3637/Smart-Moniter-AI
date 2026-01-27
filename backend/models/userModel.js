@@ -28,6 +28,10 @@ const userSchema = mongoose.Schema(
       type: String,
       require: true,
     },
+    dob: {
+      type: Date,
+      require: false,
+    },
     role: {
       type: String,
       require: true,
@@ -41,6 +45,18 @@ const userSchema = mongoose.Schema(
     isBlocked: {
       type: Boolean,
       default: false,
+    },
+    profilePic: {
+      type: String,
+      default: '',
+    },
+    resetPasswordOTP: {
+      type: String,
+      required: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      required: false,
     },
   },
   {

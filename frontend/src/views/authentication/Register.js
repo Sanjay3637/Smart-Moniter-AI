@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import PageContainer from 'src/components/container/PageContainer';
 import Logo from 'src/layouts/full/shared/logo/Logo';
 import AuthRegister from './auth/AuthRegister';
+import AuthBackground from './auth/AuthBackground';
+import AuthFeatures from './auth/AuthFeatures';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
@@ -94,19 +96,11 @@ const Register = () => {
       <Box
         sx={{
           position: 'relative',
-          '&:before': {
-            content: '""',
-            background: 'radial-gradient(#d2f1df, #d3d7fa, #bad8f4)',
-            backgroundSize: '400% 400%',
-            animation: 'gradient 15s ease infinite',
-            position: 'absolute',
-            height: '100%',
-            width: '100%',
-            opacity: '0.3',
-          },
         }}
       >
-        <Grid container spacing={0} justifyContent="center" sx={{ height: '100vh' }}>
+        <AuthBackground />
+        <AuthFeatures role="general" />
+        <Grid container spacing={0} justifyContent="center" sx={{ height: '100vh', background: 'transparent' }}>
           <Grid
             item
             xs={12}

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid';
-import Avatar from '@mui/material/Avatar';
 import { Box, Button, Stack, Typography } from '@mui/material';
 const NumberOfQuestions = ({ questionLength, submitTest, examDurationInSeconds, onTimerChange, currentQuestion = 0, answeredMap = {}, onJump }) => {
   const totalQuestions = questionLength; //questions.length;
@@ -75,32 +74,61 @@ const NumberOfQuestions = ({ questionLength, submitTest, examDurationInSeconds, 
                 {row.map((questionNumber) => {
                   const idx = questionNumber - 1;
                   const isCurrent = idx === currentQuestion;
-                  const isAnswered = !!answeredMap[idx];
-                  const palette = isCurrent
-                    ? { bg: 'primary.main', color: '#fff' }
-                    : isAnswered
-                    ? { bg: 'success.main', color: '#fff' }
-                    : { bg: 'error.main', color: '#fff' };
+                  const status = answeredMap[idx]; // 'correct', 'partial', 'error', 'attended' or undefined
+
+                  let bg = '#fff'; // Default white (Unattended)
+                  let color = '#5d87ff'; // Blue text for numbers
+                  let border = '1px solid #e0e0e0';
+
+                  if (isCurrent) {
+                    bg = '#5d87ff'; // Current active question (Blue)
+                    color = '#fff';
+                    border = 'none';
+                  } else if (status === 'correct') {
+                    bg = '#4caf50'; // Full Correct (Green)
+                    color = '#fff';
+                    border = 'none';
+                  } else if (status === 'partial') {
+                    bg = '#ffb74d'; // Partially Correct (Yellow/Orange)
+                    color = '#fff';
+                    border = 'none';
+                  } else if (status === 'error') {
+                    bg = '#ef5350'; // Error / Wrong (Red)
+                    color = '#fff';
+                    border = 'none';
+                  } else if (status === 'attended') {
+                    // Just attended but unknown status (fallback, maybe white or light gray)
+                    bg = '#fff';
+                  }
+
                   return (
-                    <Avatar
+                    <Box
                       key={questionNumber}
-                      variant="rounded"
+                      onClick={() => onJump && onJump(idx)}
                       sx={{
-                        width: 36,
-                        height: 36,
-                        fontSize: 16,
+                        width: 40,
+                        height: 40,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         cursor: 'pointer',
                         m: 0.5,
-                        bgcolor: palette.bg,
-                        color: palette.color,
-                        borderRadius: '10px',
-                        transition: 'transform 120ms ease, box-shadow 120ms ease, filter 120ms ease',
-                        '&:hover': { transform: 'translateY(-1px)', boxShadow: 2, filter: 'brightness(0.95)' },
+                        bgcolor: bg,
+                        color: color,
+                        border: border,
+                        borderRadius: 0, // Square box as requested
+                        boxShadow: isCurrent ? 3 : 1,
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          bgcolor: isCurrent ? '#4570ea' : '#f5f7fa',
+                          transform: 'translateY(-2px)'
+                        },
                       }}
-                      onClick={() => onJump && onJump(idx)}
                     >
                       {questionNumber}
-                    </Avatar>
+                    </Box>
                   );
                 })}
               </Stack>

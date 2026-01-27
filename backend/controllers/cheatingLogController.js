@@ -56,7 +56,8 @@ const saveCheatingLog = asyncHandler(async (req, res) => {
 
     if (targetUser && targetUser.role === 'student') {
       targetUser.malpracticeCount = (targetUser.malpracticeCount || 0) + 1;
-      if (targetUser.malpracticeCount >= 2) {
+      // Block if more than 3 malpractice incidents recorded
+      if (targetUser.malpracticeCount > 3) {
         targetUser.isBlocked = true;
       }
       await targetUser.save();
@@ -139,8 +140,8 @@ const deleteCheatingLog = asyncHandler(async (req, res) => {
         const current = Number(user.malpracticeCount || 0);
         const next = Math.max(0, current - 1);
         user.malpracticeCount = next;
-        // If count drops below the blocking threshold, ensure the student is unblocked
-        if (next < 2 && user.isBlocked) {
+        // If count drops below the blocking threshold (<= 3), ensure the student is unblocked
+        if (next <= 3 && user.isBlocked) {
           user.isBlocked = false;
         }
         await user.save();

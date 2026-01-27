@@ -21,7 +21,14 @@ const resultSchema = new mongoose.Schema(
         },
         selectedOption: {
           type: String,
-          required: true
+          // required: true // Not required for CODE questions
+        },
+        // For CODE questions
+        codeAnswer: {
+          type: String
+        },
+        language: {
+          type: String
         },
         isCorrect: {
           type: Boolean,
@@ -32,6 +39,11 @@ const resultSchema = new mongoose.Schema(
     score: {
       type: Number,
       required: true
+    },
+    maxScore: {
+      type: Number,
+      required: true,
+      default: 0
     },
     totalQuestions: {
       type: Number,

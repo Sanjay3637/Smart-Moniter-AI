@@ -5,6 +5,8 @@ import ArrowBackIosNewOutlinedIcon from '@mui/icons-material/ArrowBackIosNewOutl
 
 import PageContainer from 'src/components/container/PageContainer';
 import AuthLogin from './auth/AuthLogin';
+import AuthBackground from './auth/AuthBackground';
+import AuthFeatures from './auth/AuthFeatures';
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -53,6 +55,7 @@ const LoginStudent = () => {
   const handleSubmit = async ({ rollNumber, password }) => {
     try {
       const res = await login({ rollNumber, password }).unwrap();
+      sessionStorage.setItem('app_session_active', 'true');
       dispatch(setCredentials({ ...res }));
       formik.resetForm();
       navigate('/');
@@ -71,13 +74,15 @@ const LoginStudent = () => {
   return (
     <PageContainer title="Student Login" description="Student login page">
       <Box sx={{ position: 'relative' }}>
+        <AuthBackground />
+        <AuthFeatures role="student" />
         <Grid
           container
           spacing={0}
           justifyContent="center"
           sx={{
             height: '100vh',
-            background: 'linear-gradient(180deg, #FFE29F 0%, #FFA99F 50%, #FFD6A5 100%)',
+            background: 'transparent',
             backgroundAttachment: 'fixed',
           }}
         >
@@ -109,10 +114,10 @@ const LoginStudent = () => {
               <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
                 {/* Simple graduation cap illustration */}
                 <Box component="svg" width={96} height={72} viewBox="0 0 128 96">
-                  <path d="M64 8L8 32l56 24 56-24-56-24z" fill="#111827"/>
-                  <path d="M32 46v14c0 6 14 12 32 12s32-6 32-12V46L64 58 32 46z" fill="#334155"/>
-                  <circle cx="112" cy="44" r="5" fill="#f59e0b"/>
-                  <path d="M112 44v24" stroke="#f59e0b" strokeWidth="4"/>
+                  <path d="M64 8L8 32l56 24 56-24-56-24z" fill="#111827" />
+                  <path d="M32 46v14c0 6 14 12 32 12s32-6 32-12V46L64 58 32 46z" fill="#334155" />
+                  <circle cx="112" cy="44" r="5" fill="#f59e0b" />
+                  <path d="M112 44v24" stroke="#f59e0b" strokeWidth="4" />
                 </Box>
               </Box>
               <Typography variant="h5" fontWeight={700} textAlign="center" mb={0.5}>Student Login</Typography>

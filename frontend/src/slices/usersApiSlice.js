@@ -105,11 +105,25 @@ export const userApiSlice = apiSlice.injectEndpoints({
         };
       },
     }),
+    forgotPassword: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/forgot-password`,
+        method: 'POST',
+        body: data,
+      }),
+    }),
+    resetPassword: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/reset-password`,
+        method: 'POST',
+        body: data,
+      }),
+    }),
   }),
 });
 
 // it specify convention to export them
 // like for mutation we have to add use + name + Mutation
 // like for query we have to add use + name + query
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation, useBlockUserMutation, useGetAllUsersQuery, useDeleteUserMutation, useGetStudentByIdentifierQuery, useLazyGetStudentByIdentifierQuery, useGetStudentHistoryQuery, useLazyGetStudentHistoryQuery } =
+export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetProfileQuery, useUnblockUserMutation, useBlockUserMutation, useGetAllUsersQuery, useDeleteUserMutation, useGetStudentByIdentifierQuery, useLazyGetStudentByIdentifierQuery, useGetStudentHistoryQuery, useLazyGetStudentHistoryQuery, useForgotPasswordMutation, useResetPasswordMutation } =
   userApiSlice;

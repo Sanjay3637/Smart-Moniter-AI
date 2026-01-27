@@ -11,7 +11,7 @@ export const saveResult = asyncHandler(async (req, res) => {
 
   // Get the exam with questions
   const exam = await Exam.findById(examId).populate('questions');
-  
+
   if (!exam) {
     res.status(404);
     throw new Error('Exam not found');
@@ -23,15 +23,35 @@ export const saveResult = asyncHandler(async (req, res) => {
 
   exam.questions.forEach(question => {
     const studentAnswer = answers.find(a => a.questionId === question._id.toString());
-    const isCorrect = studentAnswer && studentAnswer.selectedOption === question.correctOption;
-    
-    if (isCorrect) correctAnswers++;
-    
-    resultDetails.push({
+    let isCorrect = false;
+    let resultDetail = {
       questionId: question._id,
-      selectedOption: studentAnswer ? studentAnswer.selectedOption : 'Not answered',
-      isCorrect
-    });
+      isCorrect: false
+    };
+
+    if (question.questionType === 'CODE') {
+      if (studentAnswer) {
+        resultDetail.codeAnswer = studentAnswer.codeAnswer || '';
+        resultDetail.language = studentAnswer.language || '';
+        // Trust the frontend execution result for now
+        isCorrect = !!studentAnswer.isCorrect;
+      }
+    } else {
+      // MCQ Logic
+      // Find the correct option from the question options
+      const correctOpt = question.options && question.options.find(opt => opt.isCorrect);
+      // Compare selectedOption (ID) with correct option ID
+      if (studentAnswer && correctOpt) {
+        // selectedOption is expected to be option ID string
+        isCorrect = studentAnswer.selectedOption === correctOpt._id.toString();
+      }
+      resultDetail.selectedOption = studentAnswer ? studentAnswer.selectedOption : 'Not answered';
+    }
+
+    resultDetail.isCorrect = isCorrect;
+    if (isCorrect) correctAnswers++;
+
+    resultDetails.push(resultDetail);
   });
 
   const percentage = (correctAnswers / exam.questions.length) * 100;
@@ -61,7 +81,7 @@ export const saveResult = asyncHandler(async (req, res) => {
 // @access  Private/Student
 export const getStudentResults = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
-  
+
   const results = await Result.find({ student: studentId })
     // populate exam and its category name so frontend can display category
     .populate({
@@ -93,17 +113,17 @@ export const getStudentResults = asyncHandler(async (req, res) => {
 export const getExamResult = asyncHandler(async (req, res) => {
   const { examId } = req.params;
   const studentId = req.user._id;
-  
-  const result = await Result.findOne({ 
-    student: studentId, 
-    exam: examId 
+
+  const result = await Result.findOne({
+    student: studentId,
+    exam: examId
   })
-  .populate({
-    path: 'exam',
-    select: 'examName totalQuestions duration category',
-    populate: { path: 'category', select: 'name' },
-  })
-  .populate('answers.questionId', 'questionText options correctOption');
+    .populate({
+      path: 'exam',
+      select: 'examName totalQuestions duration category',
+      populate: { path: 'category', select: 'name' },
+    })
+    .populate('answers.questionId', 'questionText options correctOption');
 
   if (!result) {
     res.status(404);

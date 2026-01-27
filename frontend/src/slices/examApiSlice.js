@@ -88,6 +88,13 @@ export const examApiSlice = apiSlice.injectEndpoints({
         body: { code },
       }),
     }),
+    compileCode: builder.mutation({
+      query: (data) => ({
+        url: '/api/compile',
+        method: 'POST',
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -104,4 +111,5 @@ export const {
   useUpdateExamAccessCodeMutation,
   useValidateExamAccessMutation,
   useSubmitExamMutation,
+  useCompileCodeMutation,
 } = examApiSlice;

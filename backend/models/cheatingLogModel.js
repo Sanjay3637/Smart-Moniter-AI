@@ -11,6 +11,13 @@ const cheatingLogSchema = new mongoose.Schema(
     email: { type: String, required: true },
     username: { type: String, required: true },
     rollNumber: { type: String },
+    screenshots: [
+      {
+        image: { type: String }, // Base64 image
+        type: { type: String },  // Incident type (cellPhone, multipleFace, etc.)
+        timestamp: { type: Date, default: Date.now },
+      }
+    ],
   },
   {
     timestamps: true,

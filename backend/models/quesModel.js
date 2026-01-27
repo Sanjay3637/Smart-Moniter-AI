@@ -6,6 +6,17 @@ const questionSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    questionType: {
+      type: String,
+      required: true,
+      enum: ['MCQ', 'CODE'],
+      default: 'MCQ',
+    },
+    marks: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
     options: [
       {
         optionText: {
@@ -18,6 +29,20 @@ const questionSchema = mongoose.Schema(
         },
       },
     ],
+    // For CODE questions
+    codeQuestion: {
+      inputFormat: { type: String },
+      outputFormat: { type: String },
+      constraints: { type: String },
+      allowedLanguages: [{ type: String }], // e.g. ['java', 'python', 'javascript']
+      testCases: [
+        {
+          input: { type: String, required: true },
+          output: { type: String, required: true },
+          isHidden: { type: Boolean, default: false },
+        },
+      ],
+    },
     // reference the Exam _id for consistency with Result model
     examId: {
       type: mongoose.Schema.Types.ObjectId,

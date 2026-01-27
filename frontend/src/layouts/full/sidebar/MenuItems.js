@@ -89,24 +89,6 @@ const Menuitems = [
     icon: IconUserCheck,
     href: '/block-student',
   },
-  {
-    id: uniqueId(),
-    title: 'Unblock Student',
-    icon: IconUserPlus,
-    href: '/unblock-student',
-  },
-  // {
-  //   id: uniqueId(),
-  //   title: 'Exam  Sale comp',
-  //   icon: IconPlayerPlayFilled,
-  //   href: '/generate-report',
-  // },
-  // {
-  //   id: uniqueId(),
-  //   title: 'Sample Page',
-  //   icon: IconAperture,
-  //   href: '/sample-page',
-  // },
 ];
 
 export default Menuitems;

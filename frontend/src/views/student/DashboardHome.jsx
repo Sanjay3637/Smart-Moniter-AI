@@ -67,10 +67,10 @@ const DashboardHome = () => {
             px: { xs: 3, md: 4 },
             py: { xs: 2.5, md: 3 },
             borderRadius: 4,
-            background: 'linear-gradient(180deg, rgba(99,102,241,0.10), rgba(236,72,153,0.10))',
+            background: 'linear-gradient(135deg, rgba(26,35,126,0.08) 0%, rgba(13,71,161,0.12) 100%)',
             border: '1px solid',
-            borderColor: 'grey.200',
-            boxShadow: '0 8px 26px rgba(15,23,42,0.08)'
+            borderColor: 'rgba(26,35,126,0.15)',
+            boxShadow: '0 8px 32px rgba(26,35,126,0.06)'
           }}
         >
           <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
@@ -166,13 +166,13 @@ const DashboardHome = () => {
                       <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.4" />
-                            <stop offset="100%" stopColor="#EC4899" stopOpacity="0.2" />
+                            <stop offset="0%" stopColor="#1A237E" stopOpacity="0.5" />
+                            <stop offset="100%" stopColor="#0D47A1" stopOpacity="0.1" />
                           </linearGradient>
                         </defs>
-                        <path d={d} fill="none" stroke="url(#grad)" strokeWidth="3" strokeLinecap="round" />
+                        <path d={d} fill="none" stroke="url(#grad)" strokeWidth="4" strokeLinecap="round" />
                         {points.map((v, i) => (
-                          <circle key={i} cx={toX(i)} cy={toY(v)} r="3" fill="#6366F1" />
+                          <circle key={i} cx={toX(i)} cy={toY(v)} r="4" fill="#1A237E" />
                         ))}
                       </svg>
                     </Box>

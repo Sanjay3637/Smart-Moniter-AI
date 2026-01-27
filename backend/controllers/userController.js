@@ -6,6 +6,10 @@ import Exam from "../models/examModel.js";
 import Category from "../models/categoryModel.js";
 import mongoose from "mongoose";
 import UserActionLog from "../models/userActionLogModel.js";
+import sendEmail from "../utils/sendEmail.js";
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 const authUser = asyncHandler(async (req, res) => {
   // Authenticate using rollNumber OR email + password.
@@ -35,6 +39,8 @@ const authUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       rollNumber: user.rollNumber,
+      dob: user.dob,
+      profilePic: user.profilePic,
       role: user.role,
       password_encrypted: user.password,
       isBlocked: user.isBlocked,
@@ -184,7 +190,7 @@ const blockUser = asyncHandler(async (req, res) => {
       rollNumber: user.rollNumber,
       action: 'BLOCK',
     });
-  } catch (e) {}
+  } catch (e) { }
 
   res.status(200).json({
     message: 'User blocked successfully',
@@ -199,7 +205,7 @@ const blockUser = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   // Students: require rollNumber, email optional
   // Teachers: require email, rollNumber optional
-  const { name, email, password, role, rollNumber } = req.body;
+  const { name, email, password, role, rollNumber, dob } = req.body;
 
   if (role === 'student') {
     if (!rollNumber) {
@@ -231,6 +237,8 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     role,
     rollNumber,
+    dob,
+    profilePic: req.body.profilePic || '',
   });
 
   if (user) {
@@ -241,6 +249,8 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       rollNumber: user.rollNumber,
+      dob: user.dob,
+      profilePic: user.profilePic,
       role: user.role,
       password_encrypted: user.password,
       isBlocked: user.isBlocked,
@@ -253,12 +263,12 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-const logoutUser = asyncHandler(async (req, res) => {
+const logoutUser = asyncHandler(async (req, res, next) => {
   if (req.session) {
     req.session.destroy((err) => {
       if (err) {
-        res.status(500);
-        throw new Error("Failed to logout session");
+        console.error("Logout session destroy failed:", err);
+        // Continue to clear cookie even if destroy failed
       }
       res.clearCookie('connect.sid');
       res.status(200).json({ message: "User logged out" });
@@ -274,6 +284,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
     name: req.user.name,
     email: req.user.email,
     rollNumber: req.user.rollNumber,
+    dob: req.user.dob,
+    profilePic: req.user.profilePic,
     role: req.user.role,
     createdAt: req.user.createdAt,
     isBlocked: req.user.isBlocked,
@@ -288,6 +300,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
+    user.dob = req.body.dob || user.dob;
+    user.profilePic = req.body.profilePic || user.profilePic;
     // allow updating rollNumber but ensure uniqueness
     if (req.body.rollNumber && req.body.rollNumber !== user.rollNumber) {
       const exists = await User.findOne({ rollNumber: req.body.rollNumber });
@@ -308,6 +322,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
+      dob: updatedUser.dob,
+      profilePic: updatedUser.profilePic,
       role: updatedUser.role,
       createdAt: updatedUser.createdAt,
       isBlocked: updatedUser.isBlocked,
@@ -400,7 +416,7 @@ const unblockUser = asyncHandler(async (req, res) => {
       action: 'UNBLOCK',
       metadata: { resetCount },
     });
-  } catch (e) {}
+  } catch (e) { }
 
   res.status(200).json({
     message: 'User unblocked successfully',
@@ -410,6 +426,110 @@ const unblockUser = asyncHandler(async (req, res) => {
     malpracticeCount: user.malpracticeCount,
     isBlocked: user.isBlocked,
   });
+});
+
+// Public: Forgot password - send OTP to email
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email, rollNumber } = req.body;
+
+  if (!email && !rollNumber) {
+    res.status(400);
+    throw new Error('Please provide email or roll number');
+  }
+
+  const query = email ? { email } : { rollNumber };
+  const user = await User.findOne(query);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found with provided credentials');
+  }
+
+  if (!user.email) {
+    res.status(400);
+    throw new Error('No email associated with this account. Please contact support.');
+  }
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  user.resetPasswordOTP = otp;
+  user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 mins
+
+  await user.save();
+
+  const message = `Your password reset OTP for Smart Monitor AI is: ${otp}. It will expire in 10 minutes.`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #f9f9f9;">
+      <h2 style="color: #1A237E;">Password Reset OTP</h2>
+      <p>Hello ${user.name || 'User'},</p>
+      <p>We received a request to reset your password. Use the following 6-digit OTP to proceed:</p>
+      <div style="font-size: 24px; font-weight: bold; color: #0D47A1; margin: 20px 0; letter-spacing: 5px;">${otp}</div>
+      <p>This code will expire in <strong>10 minutes</strong>.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #ddd;" />
+      <p style="font-size: 12px; color: #777;">Secure Exam Proctoring Team • Smart Monitor AI</p>
+    </div>
+  `;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset OTP - Smart Monitor AI',
+      message,
+      html
+    });
+
+    res.status(200).json({ message: 'OTP sent to registered email' });
+  } catch (err) {
+    console.error('Email sending failed:', err);
+    try {
+      fs.appendFileSync('debug.log', `${new Date().toISOString()} - Forgot Password Error: ${err.message}\n${err.stack}\n`);
+    } catch (fsErr) { }
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(500);
+    throw new Error('Email could not be sent. Please try again later.');
+  }
+});
+
+// Public: Reset password using OTP
+const resetPassword = asyncHandler(async (req, res) => {
+  const { otp, newPassword, email, rollNumber } = req.body;
+
+  if (!otp || !newPassword) {
+    res.status(400);
+    throw new Error('Please provide OTP and new password');
+  }
+
+  const query = email ? { email } : { rollNumber };
+  const user = await User.findOne({
+    ...query,
+    resetPasswordOTP: otp,
+    resetPasswordExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Invalid or expired OTP');
+  }
+
+  user.password = newPassword;
+  user.resetPasswordOTP = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save();
+
+  try {
+    await UserActionLog.create({
+      userId: user._id,
+      rollNumber: user.rollNumber,
+      action: 'PASSWORD_RESET',
+    });
+  } catch (e) { }
+
+  res.status(200).json({ message: 'Password reset successful. You can now login with your new password.' });
 });
 
 export {
@@ -424,4 +544,6 @@ export {
   deleteUser,
   getStudentByIdentifier,
   getStudentHistory,
+  forgotPassword,
+  resetPassword,
 };
